@@ -18,7 +18,8 @@ import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.UserId
 object App extends FinatraServer {
   val ClientId = "YW2OX3IMFPZ1RNZZC5QSHCFNQYKHXQTJKMHNTSK32USWXSQU"
   val ClientSecret = "01EBTETQJJMWI2W4OZWGKNGHICOTWMW1OSSTDJ3RYEGQ3RTG"
-  val OAuthCallback = "http://ratemyweekend.herokuapp.com/oauth_callback"
+  //val OAuthCallback = "http://ratemyweekend.herokuapp.com/oauth_callback"
+  val OAuthCallback = "http://localhost.com:7070/oauth_callback"
 
   val FS = new FHttpClient("foursquare", "foursquare.com:443",
      ClientBuilder()
@@ -27,6 +28,15 @@ object App extends FinatraServer {
       .tcpConnectTimeout(1.second)
       .hostConnectionLimit(1)
       .retries(0))
+
+  val FSApi = new FHttpClient("foursquare-api", "api.foursquare.com:443",
+     ClientBuilder()
+      .codec(Http())
+      .tls("api.foursquare.com")
+      .tcpConnectTimeout(1.second)
+      .hostConnectionLimit(1)
+      .retries(0))
+
 
   class ThrinatraController extends Controller {
 
@@ -61,12 +71,11 @@ object App extends FinatraServer {
       }
 
       def fsUserF(token: AccessTokenResponse): Future[UserJson] = {
-        FS("/users/self")
-          .params("access_token" -> token.access_token)
+        FSApi("/v2/users/self")
+          .params("oauth_token" -> token.access_token, "v" -> "20140101")
           .getFuture()
           .map(Json.parse(_, UserResponseWrapper).response.user)
       }
-
 
       def userF(token: AccessTokenResponse, fsUser: UserJson): Future[User] = {
         val user = User.newBuilder
@@ -83,6 +92,13 @@ object App extends FinatraServer {
         user <- userF(token, fsUser)
       } yield {
         redirect("/", permanent = true)
+      }
+    }
+
+    error { request =>
+      request.error match {
+        case Some(e: Exception) => render.status(500).plain(e.getMessage + "\n" + e.getStackTrace).toFuture
+        case _ => render.status(500).plain("Something went wrong!").toFuture
       }
     }
 
