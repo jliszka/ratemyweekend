@@ -1,14 +1,14 @@
 package org.jliszka.ratemyweekend
 
-import org.jliszka.ratemyweekend.AccessTokenResponse
-import org.jliszka.ratemyweekend.ThrinatraTypedefs.UserId
+import com.foursquare.fhttp._
+import com.foursquare.fhttp.FHttpRequest._
 import com.foursquare.rogue.Rogue._
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
 import org.bson.types.ObjectId
-import com.foursquare.fhttp._
-import com.foursquare.fhttp.FHttpRequest._
+import org.jliszka.ratemyweekend.gen.AccessTokenResponse
+import org.jliszka.ratemyweekend.gen.ModelTypedefs.UserId
 
 object App extends FinatraServer {
   val ClientId = "YW2OX3IMFPZ1RNZZC5QSHCFNQYKHXQTJKMHNTSK32USWXSQU"
