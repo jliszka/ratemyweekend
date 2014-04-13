@@ -1,4 +1,4 @@
-package com.foursquare.thrinatra
+package org.jliszka.ratemyweekend
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers

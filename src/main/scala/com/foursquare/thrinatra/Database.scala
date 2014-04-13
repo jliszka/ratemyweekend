@@ -1,4 +1,4 @@
-package com.foursquare.thrinatra
+package org.jliszka.ratemyweekend
 
 import com.foursquare.rogue.spindle.{SpindleDBCollectionFactory, SpindleDatabaseService}
 import com.foursquare.spindle.UntypedMetaRecord
@@ -9,7 +9,7 @@ object ConcreteDBCollectionFactory extends SpindleDBCollectionFactory {
     val mongoUrl = System.getenv("MONGOHQ_URL")
     if (mongoUrl == null) {
       // TODO(dan): Support a flag override
-      new MongoClient("localhost", 27017).getDB("thrinatra")
+      new MongoClient("localhost", 27017).getDB("ratemyweekend")
     } else {
       val mongoURI = new MongoURI(mongoUrl)
       val mongo = mongoURI.connectDB
@@ -23,4 +23,4 @@ object ConcreteDBCollectionFactory extends SpindleDBCollectionFactory {
   override def indexCache = None
 }
 
-object Database extends SpindleDatabaseService(ConcreteDBCollectionFactory)
+object db extends SpindleDatabaseService(ConcreteDBCollectionFactory)

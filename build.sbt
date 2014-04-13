@@ -22,6 +22,8 @@ libraryDependencies += "org.mongodb" % "mongo-java-driver" % "2.10.1"
 
 libraryDependencies += "com.foursquare" % "common-thrift-bson" % "1.7.0"
 
+libraryDependencies += "com.foursquare" %% "foursquare-fhttp" % "0.1.11"
+
 seq(thriftSettings: _*)
 
 seq(SbtStartScript.startScriptForJarSettings: _*)
