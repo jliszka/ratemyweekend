@@ -8,7 +8,7 @@ scalaVersion := "2.10.3"
 
 resolvers += "Twitter's Repository" at "http://maven.twttr.com/"
 
-libraryDependencies += "com.twitter" % "finatra" % "1.4.0"
+libraryDependencies += "com.twitter" %% "finatra" % "1.5.3"
 
 libraryDependencies += "com.foursquare" %% "rogue-field" % "2.2.1" intransitive()
 
