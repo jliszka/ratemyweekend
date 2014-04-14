@@ -42,44 +42,55 @@ object App extends FinatraServer {
       render.view(template).toFuture
     }
 
+    get("/sync") { request =>
+      val tz = DateTimeZone.forID("America/New_York")
+      val friday5pm = DateTime.now.withZone(tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
+      val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
+
+      val year = friday5pm.getYear
+      val week = friday5pm.getWeekOfWeekyear
+
+      val weekendQuery = Q(Weekend)
+        .where(_.year eqs year)
+        .and(_.week eqs week)
+
+      val doneUsers: Set[UserId] = db.fetch(weekendQuery.select(_.uid)).flatten.toSet
+
+      db.fetch(Q(User)).filterNot(u => doneUsers(u.id)).foreach(user => {
+        val query = weekendQuery.where(_.uid eqs user.id)
+
+        val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
+          .params("oauth_token" -> user.accessToken, "v" -> "20140101")
+          .params(
+            "sort" -> "oldestfirst",
+            "afterTimestamp" -> dateToApi(friday5pm).toString,
+            "beforeTimestamp" -> dateToApi(monday4am).toString)
+          .getFuture()
+          .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
+
+        for {
+          apiCheckins <- apiCheckinsF
+        } {
+          db.upsertOne(query.modify(_.checkins setTo apiCheckins))
+        }
+      })
+
+      render.status(200).plain("ok").toFuture
+    }
+
     get("/checkins") { request =>
       loggedInUser(request) match {
         case None => redirect("/").toFuture
         case Some(user) => {
 
-          val tz = DateTimeZone.forID("America/New_York")
-          val friday5pm = DateTime.now.withZone(tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
-          val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
-
-          val year = friday5pm.getYear
-          val week = friday5pm.getDayOfYear //getWeekOfYear
-
-          val weekendQuery = Q(Weekend)
-            .where(_.uid eqs user.id)
-            .and(_.year eqs year)
-            .and(_.week eqs week)
-
-          val dbCheckinsOptF : Future[Option[Seq[CheckinJson]]] = Future {
-            db.fetchOne(weekendQuery.select(_.checkins)).getOrElse(None)
+          val checkinsF: Future[Seq[CheckinJson]] = Future {
+            db.fetchOne(Q(Weekend)
+              .where(_.uid eqs user.id)
+              .select(_.checkins)
+              .orderDesc(_.id))
+            .getOrElse(None)
+            .getOrElse(Nil)
           }
-
-          val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
-            .params("oauth_token" -> user.accessToken, "v" -> "20140101")
-            .params(
-              "sort" -> "oldestfirst",
-              "afterTimestamp" -> dateToApi(friday5pm).toString,
-              "beforeTimestamp" -> dateToApi(monday4am).toString)
-            .getFuture()
-            .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
-            .flatMap(apiCheckins => Future {
-              db.upsertOne(weekendQuery.modify(_.checkins setTo apiCheckins))
-              apiCheckins
-            })
-
-          val checkinsF: Future[Seq[CheckinJson]] = dbCheckinsOptF.flatMap(dbCheckinsOpt => dbCheckinsOpt match {
-            case Some(dbCheckins) => Future.value(dbCheckins)
-            case None => apiCheckinsF
-          })
 
           for {
             checkins <- checkinsF
