@@ -12,8 +12,9 @@ import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.json.gen.{AccessTokenResponse, UserJson, UserResponseWrapper}
-import org.jliszka.ratemyweekend.model.gen.User
-import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.UserId
+import org.jliszka.ratemyweekend.model.gen.{Session, User}
+import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId}
+import org.joda.time.DateTime
 
 object App extends FinatraServer {
   val ClientId = "YW2OX3IMFPZ1RNZZC5QSHCFNQYKHXQTJKMHNTSK32USWXSQU"
@@ -44,9 +45,17 @@ object App extends FinatraServer {
       val template = "home.mustache"
     }
 
+    def loggedInUser(request: Request): Option[User] = {
+      for {
+        sessionId <- request.cookies.get("sessionid").map(c => SessionId(new ObjectId(c.value)))
+        session <- db.findAndUpdateOne(Q(Session).where(_.id eqs sessionId).findAndModify(_.lastUsed setTo DateTime.now))
+        user <- db.fetchOne(Q(User).where(_.id eqs session.uid))
+      } yield user
+    }
+
     get("/") { request =>
-      // TODO: read user from session
-      val template = new HomeView(None)
+      val userOpt = loggedInUser(request)
+      val template = new HomeView(userOpt)
       render.view(template).toFuture
     }
 
@@ -77,21 +86,28 @@ object App extends FinatraServer {
           .map(Json.parse(_, UserResponseWrapper).response.user)
       }
 
-      def userF(token: AccessTokenResponse, fsUser: UserJson): Future[User] = {
-        val user = User.newBuilder
-          .id(UserId(new ObjectId))
-          .accessToken(token.access_token)
-          .fsId(fsUser.id)
-          .result
-        Future(db.save(user))
+      def userF(token: AccessTokenResponse, fsUser: UserJson): Future[User] = Future {
+        db.findAndUpsertOne(Q(User)
+          .where(_.id eqs UserId(fsUser.id))
+          .findAndModify(_.accessToken setTo token.access_token),
+        returnNew = true).get
+      }
+
+      def sessionF(user: User): Future[Session] = Future {
+        db.save(Session.newBuilder
+          .id(SessionId(new ObjectId))
+          .lastUsed(DateTime.now)
+          .uid(user.id)
+          .result)
       }
 
       for {
         token <- accessTokenF
         fsUser <- fsUserF(token)
         user <- userF(token, fsUser)
+        session <- sessionF(user)
       } yield {
-        redirect("/", permanent = true)
+        redirect("/", permanent = true).cookie("sessionid", session.id.toString)
       }
     }
 

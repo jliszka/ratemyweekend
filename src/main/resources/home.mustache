@@ -40,30 +40,12 @@
 
     <div class="container">
 
-      <h2>Create a new item</h2>
-      <form class="form-inline" role="form" method="post" action="/item/put">
-        <div class="form-group">
-          <label class="sr-only" for="text">Text</label>
-          <input type="text" class="form-control" id="text" name="text" placeholder="Enter text">
-        </div>
-        <button type="submit" class="btn btn-default">Create</button>
-      </form>
-
-      <h2>Existing</h2>
-      <ul class="media-list">
-      {{#items}}
-        <li class="media">
-          <div class="media-body">
-            <h4 class="media-heading">
-              <form class="form-inline" role="form" method="post" action="/item/{{id}}/delete">
-                <small><button type="submit" class="btn btn-link"><span class="glyphicon glyphicon-remove"></span></button></small>
-                {{text}}
-              </form>
-            </h4>
-          </div>
-        </li>
-      {{/items}}
-      </ul>
+    {{#userOpt}}
+      <h2>Welcome, {{id}}!</h2>
+    {{/userOpt}}
+    {{^userOpt}}
+      <h2>Please <a href="/authenticate">log in</a></h2>
+    {{/userOpt}}
 
     </div>
 
