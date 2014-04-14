@@ -11,7 +11,10 @@ typedef types.ObjectId FriendId (new_type="true")
 
 struct User {
   1: required UserId id (wire_name="_id")
-  2: string accessToken (wire_name="at")
+  2: required string accessToken (wire_name="at")
+  3: optional string firstName (wire_name="fn")
+  4: optional string lastName (wire_name="ln")
+  5: optional string photo (wire_name="p")
 } (
   mongo_collection="users"
   mongo_identifier="ratemyweekend"

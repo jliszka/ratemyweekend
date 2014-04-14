@@ -49,7 +49,10 @@ class OAuthController extends Controller {
     def userF(token: AccessTokenResponse, fsUser: UserJson): Future[User] = Future {
       db.findAndUpsertOne(Q(User)
         .where(_.id eqs UserId(fsUser.id))
-        .findAndModify(_.accessToken setTo token.access_token),
+        .findAndModify(_.accessToken setTo token.access_token)
+        .andOpt(fsUser.firstNameOption)(_.firstName setTo _)
+        .andOpt(fsUser.lastNameOption)(_.lastName setTo _)
+        .andOpt(fsUser.photoOption.map(p => p.prefix + "100x100" + p.suffix))(_.photo setTo _),
       returnNew = true).get
     }
 
