@@ -1,6 +1,5 @@
 package org.jliszka.ratemyweekend
 
-import com.foursquare.rogue.Rogue._
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.util.Future
 import com.twitter.finatra._
@@ -9,8 +8,9 @@ import java.io.{PrintWriter, StringWriter}
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.FSApi
 import org.jliszka.ratemyweekend.json.gen.{CheckinsResponseWrapper, CheckinJson}
-import org.jliszka.ratemyweekend.model.gen.{Session, User}
-import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId}
+import org.jliszka.ratemyweekend.model.gen.{Session, User, Weekend}
+import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId, WeekendId}
+import org.jliszka.ratemyweekend.RogueExtensions._
 import org.joda.time.{DateTime, DateTimeZone}
 
 object App extends FinatraServer {
@@ -51,7 +51,19 @@ object App extends FinatraServer {
           val friday5pm = DateTime.now.withZone(tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
           val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
 
-          val checkinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
+          val year = friday5pm.getYear
+          val week = friday5pm.getDayOfYear //getWeekOfYear
+
+          val weekendQuery = Q(Weekend)
+            .where(_.uid eqs user.id)
+            .and(_.year eqs year)
+            .and(_.week eqs week)
+
+          val dbCheckinsOptF : Future[Option[Seq[CheckinJson]]] = Future {
+            db.fetchOne(weekendQuery.select(_.checkins)).getOrElse(None)
+          }
+
+          val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
             .params("oauth_token" -> user.accessToken, "v" -> "20140101")
             .params(
               "sort" -> "oldestfirst",
@@ -59,6 +71,15 @@ object App extends FinatraServer {
               "beforeTimestamp" -> dateToApi(monday4am).toString)
             .getFuture()
             .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
+            .flatMap(apiCheckins => Future {
+              db.upsertOne(weekendQuery.modify(_.checkins setTo apiCheckins))
+              apiCheckins
+            })
+
+          val checkinsF: Future[Seq[CheckinJson]] = dbCheckinsOptF.flatMap(dbCheckinsOpt => dbCheckinsOpt match {
+            case Some(dbCheckins) => Future.value(dbCheckins)
+            case None => apiCheckinsF
+          })
 
           for {
             checkins <- checkinsF
