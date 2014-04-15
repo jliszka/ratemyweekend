@@ -4,7 +4,7 @@ import com.foursquare.spindle.Record
 import com.foursquare.rogue.spindle.{SpindleRogue, SpindleRogueWriteSerializer}
 import com.foursquare.rogue.{BSONType, Rogue}
 
-object RogueExtensions extends Rogue with SpindleRogue {
+trait RogueExtensions {
 
   class SpindleRecordIsBSONType[R <: Record[R]] extends BSONType[R] {
     private val serializer = new SpindleRogueWriteSerializer
@@ -15,3 +15,5 @@ object RogueExtensions extends Rogue with SpindleRogue {
 
   implicit def SpindleRecordIsBSONType[R <: Record[R]]: BSONType[R] = _SpindleRecordIsBSONType.asInstanceOf[BSONType[R]]
 }
+
+object RogueImplicits extends Rogue with SpindleRogue with RogueExtensions

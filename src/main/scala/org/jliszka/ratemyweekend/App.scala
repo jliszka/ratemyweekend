@@ -1,6 +1,7 @@
 package org.jliszka.ratemyweekend
 
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
+import com.google.common.base.{Function => GFunction}
 import com.twitter.util.Future
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
@@ -10,19 +11,47 @@ import org.jliszka.ratemyweekend.Http.FSApi
 import org.jliszka.ratemyweekend.json.gen.{CheckinsResponseWrapper, CheckinJson}
 import org.jliszka.ratemyweekend.model.gen.{Session, User, Weekend}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId, WeekendId}
-import org.jliszka.ratemyweekend.RogueExtensions._
+import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.format.DateTimeFormat
 
 object App extends FinatraServer {
 
   class ThrinatraController extends Controller {
 
+    val tz = DateTimeZone.forID("America/New_York")
+
     class HomeView(val userOpt: Option[User]) extends View {
       val template = "home.mustache"
     }
 
-    class CheckinsView(val user: User, val checkins: Seq[CheckinJson]) extends View {
+    private val dateTimeFmt = DateTimeFormat.forPattern("EEEE, MMMM d, yyyy 'at' h:mm aa z")
+    private val dateFmt = DateTimeFormat.forPattern("EEEE, MMMM d")
+    private val timeFmt = DateTimeFormat.forPattern("h:mm aa")
+
+    def fn(f: String => String): GFunction[String, String] = new GFunction[String, String] {
+      def apply(s: String) = f(s)
+    }
+
+    class CheckinsView(val user: User, weekend: Weekend) extends View {
       val template = "checkins.mustache"
+      val friendlyTime = fn(s => timeFmt.print(apiToDate(s.toLong)))
+
+      val friday = new DateTime(weekend.year, 1, 1, 0, 0, 0, 0).withWeekOfWeekyear(weekend.week).withDayOfWeek(5)
+
+      case class WeekendDay(dayOfWeek: Int, checkins: Seq[CheckinJson]) {
+        val date = dateFmt.print(friday.withDayOfWeek(dayOfWeek))
+      }
+
+      def groupByDay(checkins: Seq[CheckinJson]): Seq[WeekendDay] = {
+        checkins
+          .groupBy(c => apiToDate(c.createdAt).minusHours(4).getDayOfWeek)
+          .toSeq
+          .map{ case (dayOfWeek, checkins) => WeekendDay(dayOfWeek, checkins) }
+          .sortBy(_.dayOfWeek)
+      }
+
+      val checkinsByDay = groupByDay(weekend.checkins)
     }
 
     def loggedInUser(request: Request): Option[User] = {
@@ -34,7 +63,7 @@ object App extends FinatraServer {
     }
 
     def dateToApi(d: DateTime) = d.getMillis / 1000
-    def apiToDate(s: Long) = new DateTime(s * 1000)
+    def apiToDate(s: Long) = new DateTime(s * 1000).withZone(tz)
 
     get("/") { request =>
       val userOpt = loggedInUser(request)
@@ -43,7 +72,6 @@ object App extends FinatraServer {
     }
 
     get("/sync") { request =>
-      val tz = DateTimeZone.forID("America/New_York")
       val friday5pm = DateTime.now.withZone(tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
       val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
 
@@ -81,22 +109,20 @@ object App extends FinatraServer {
     get("/checkins") { request =>
       loggedInUser(request) match {
         case None => redirect("/").toFuture
-        case Some(user) => {
+        case Some(user) => Future {
 
-          val checkinsF: Future[Seq[CheckinJson]] = Future {
+          val weekendOpt = {
             db.fetchOne(Q(Weekend)
               .where(_.uid eqs user.id)
-              .select(_.checkins)
               .orderDesc(_.id))
-            .getOrElse(None)
-            .getOrElse(Nil)
           }
 
-          for {
-            checkins <- checkinsF
-          } yield {
-            val template = new CheckinsView(user, checkins)
-            render.view(template)
+          weekendOpt match {
+            case None => redirect("/")
+            case Some(weekend) => {
+              val template = new CheckinsView(user, weekend)
+              render.view(template)
+            }
           }
         }
       }

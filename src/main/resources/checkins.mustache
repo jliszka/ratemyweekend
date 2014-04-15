@@ -1,11 +1,36 @@
 {{<chrome}}
   {{$content}}
-    <h2>Welcome, {{user.id}}!</h2>
+    <h2>{{user.firstNameOption}}'s weekend</h2>
 
-    <ul>
-    {{#checkins}}
-      <li>{{id}}: {{#venueOption}}{{name}}{{/venueOption}}</li>
-    {{/checkins}}
-    </ul>
+    {{#checkinsByDay}}
+    <h3>{{date}}</h3>
+      {{#checkins}}
+      <div class="checkin">
+        {{#venueOption}}
+          {{#categories}}
+            {{#primary}}
+              <span class="category">
+                <img src="{{icon.prefix}}bg_64{{icon.suffix}}"/>
+              </span>
+            {{/primary}}
+          {{/categories}}
+          <div class="venuename">{{name}}</div>
+          <div class="location">{{location.cityOption}}, {{location.stateOption}}</div>
+        {{/venueOption}}
+        <div class="shout">"{{shoutOption}}"</div>
+        {{#photosOption}}
+          {{#items}}
+            <div class="photo">
+              <img src="{{prefix}}300x300{{suffix}}"/>
+            </div>
+          {{/items}}
+        {{/photosOption}}
+        <div class="timestamp">
+          {{#friendlyTime}}{{createdAt}}{{/friendlyTime}}
+        </div>
+        <div class="clear"></div>
+      </div>
+      {{/checkins}}
+    {{/checkinsByDay}}
   {{/content}}
 {{/chrome}}

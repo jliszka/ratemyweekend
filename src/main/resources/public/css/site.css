@@ -1,0 +1,41 @@
+
+.checkin {
+  padding: 15px;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  background: #f6f6f6;
+  width: 330px;
+}
+
+.checkin .category {
+  float: left;
+  margin-right: 10px;
+}
+
+.checkin .venuename {
+  font-size: 18px;
+}
+
+.checkin .location {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.checkin .shout {
+  margin-top: 3px;
+}
+
+.checkin .photo {
+  margin-top: 15px;
+}
+
+.checkin .timestamp {
+  font-size: 12px;
+  color: #aaa;
+  float: right;
+  margin-top: 10px;
+}
+
+.clear {
+  clear: both;
+}

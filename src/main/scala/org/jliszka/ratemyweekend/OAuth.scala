@@ -1,6 +1,5 @@
 package org.jliszka.ratemyweekend
 
-import com.foursquare.rogue.Rogue._
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.util.Future
 import com.twitter.finatra._
@@ -10,6 +9,7 @@ import org.jliszka.ratemyweekend.Http.{FS, FSApi}
 import org.jliszka.ratemyweekend.json.gen.{AccessTokenResponse, UserJson, UserResponseWrapper}
 import org.jliszka.ratemyweekend.model.gen.{Session, User}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId}
+import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
 
 class OAuthController extends Controller {
