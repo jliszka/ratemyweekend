@@ -6,6 +6,7 @@
     <h3>{{date}}</h3>
       {{#checkins}}
       <div class="checkin">
+
         {{#venueOption}}
           {{#categories}}
             {{#primary}}
@@ -17,7 +18,9 @@
           <div class="venuename">{{name}}</div>
           <div class="location">{{location.cityOption}}, {{location.stateOption}}</div>
         {{/venueOption}}
+
         <div class="shout">"{{shoutOption}}"</div>
+
         {{#photosOption}}
           {{#items}}
             <div class="photo">
@@ -25,9 +28,19 @@
             </div>
           {{/items}}
         {{/photosOption}}
+
         <div class="timestamp">
           {{#friendlyTime}}{{createdAt}}{{/friendlyTime}}
         </div>
+
+        <div class="with">
+          {{#withOption}}
+            {{#photoOption}}
+              <img src="{{prefix}}40x40{{suffix}}"/>
+            {{/photoOption}}
+          {{/withOption}}
+        </div>
+
         <div class="clear"></div>
       </div>
       {{/checkins}}

@@ -45,7 +45,7 @@ struct Rating {
   2: required UserId rater (wire_name="r")
   3: required UserId ratee (wire_name="e")
   4: required WeekendId weekend (wire_name="w")
-  5: required i32 score (wire_name="s")
+  5: optional i32 score (wire_name="s")
 } (
   mongo_collection="ratings"
   mongo_identifier="ratemyweekend"
@@ -56,6 +56,6 @@ struct Friend {
   2: required UserId self (wire_name="s")
   3: required UserId other (wire_name="o")
 } (
-  mongo_collection="friendrs"
+  mongo_collection="friends"
   mongo_identifier="ratemyweekend"
 )
