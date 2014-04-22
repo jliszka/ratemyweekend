@@ -3,7 +3,8 @@
     <h2>{{user.firstNameOption}}'s weekend</h2>
 
     {{#checkinsByDay}}
-    <h3>{{date}}</h3>
+    <div class="day">
+      <h3 class="day-header">{{date}}</h3>
       {{#checkins}}
       <div class="checkin">
 
@@ -19,7 +20,9 @@
           <div class="location">{{location.cityOption}}, {{location.stateOption}}</div>
         {{/venueOption}}
 
-        <div class="shout">"{{shoutOption}}"</div>
+        <div class="shout">
+          {{#shoutOption}}"{{toString}}"{{/shoutOption}}
+        </div>
 
         {{#photosOption}}
           {{#items}}
@@ -44,6 +47,7 @@
         <div class="clear"></div>
       </div>
       {{/checkins}}
+    </div>
     {{/checkinsByDay}}
   {{/content}}
 {{/chrome}}

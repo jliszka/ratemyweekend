@@ -43,3 +43,11 @@
 .clear {
   clear: both;
 }
+
+.day {
+  float: left;
+  margin-right: 40px;
+}
+
+.day-header {
+}
