@@ -9,9 +9,20 @@ struct AccessTokenResponse {
 struct UserResponseWrapper {
   1: required UserResponse response
 }
-
 struct UserResponse {
   1: required UserJson user
+}
+
+struct FriendsResponseWrapper {
+  1: required FriendsResponse response
+}
+struct FriendsResponse {
+  1: required FriendsJson friends
+}
+
+struct FriendsJson {
+  1: required i32 count
+  2: optional list<UserJson> friends
 }
 
 struct UserJson {

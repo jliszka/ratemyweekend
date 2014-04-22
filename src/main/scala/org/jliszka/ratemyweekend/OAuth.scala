@@ -6,9 +6,9 @@ import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.{FS, FSApi}
-import org.jliszka.ratemyweekend.json.gen.{AccessTokenResponse, UserJson, UserResponseWrapper}
-import org.jliszka.ratemyweekend.model.gen.{Session, User}
-import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId}
+import org.jliszka.ratemyweekend.json.gen.{AccessTokenResponse, FriendsResponseWrapper, UserJson, UserResponseWrapper}
+import org.jliszka.ratemyweekend.model.gen.{Friend, Session, User}
+import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{FriendId, SessionId, UserId}
 import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
 
@@ -43,36 +43,10 @@ class OAuthController extends Controller {
         .map(Json.parse(_, AccessTokenResponse))
     }
 
-    def fsUserF(token: AccessTokenResponse): Future[UserJson] = {
-      FSApi("/v2/users/self")
-        .params("oauth_token" -> token.access_token, "v" -> "20140101")
-        .getFuture()
-        .map(Json.parse(_, UserResponseWrapper).response.user)
-    }
-
-    def userF(token: AccessTokenResponse, fsUser: UserJson): Future[User] = Future {
-      db.findAndUpsertOne(Q(User)
-        .where(_.id eqs UserId(fsUser.id))
-        .findAndModify(_.accessToken setTo token.access_token)
-        .andOpt(fsUser.firstNameOption)(_.firstName setTo _)
-        .andOpt(fsUser.lastNameOption)(_.lastName setTo _)
-        .andOpt(fsUser.photoOption.map(p => p.prefix + "100x100" + p.suffix))(_.photo setTo _),
-      returnNew = true).get
-    }
-
-    def sessionF(user: User): Future[Session] = Future {
-      db.save(Session.newBuilder
-        .id(SessionId(new ObjectId))
-        .lastUsed(DateTime.now)
-        .uid(user.id)
-        .result)
-    }
-
     for {
       token <- accessTokenF
-      fsUser <- fsUserF(token)
-      user <- userF(token, fsUser)
-      session <- sessionF(user)
+      user <- Actions.createUser(token.access_token)
+      session <- Actions.createSession(user)
     } yield {
       redirect("/", permanent = true).cookie("sessionid", session.id.toString)
     }
