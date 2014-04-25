@@ -5,8 +5,8 @@ import com.twitter.util.Future
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.{FS, FSApi}
 import org.jliszka.ratemyweekend.json.gen.{CheckinJson, CheckinsResponseWrapper, FriendsResponseWrapper, UserJson, UserResponseWrapper}
-import org.jliszka.ratemyweekend.model.gen.{Friend, Session, User, Weekend}
-import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{FriendId, SessionId, UserId}
+import org.jliszka.ratemyweekend.model.gen.{Friend, Rating, Session, User, Weekend}
+import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{FriendId, SessionId, UserId, WeekendId}
 import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
 
@@ -108,10 +108,6 @@ object Actions {
   }
 
   def syncCheckins(user: User, week: Week): Future[Unit] = {
-    val query = Q(Weekend)
-      .where(_.uid eqs user.id)
-      .and(_.year eqs week.year)
-      .and(_.week eqs week.week)
 
     val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
       .params("oauth_token" -> user.accessToken, "v" -> "20140101")
@@ -122,13 +118,32 @@ object Actions {
       .getFuture()
       .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
 
-    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Unit] = future {
-      db.upsertOne(query.modify(_.checkins setTo apiCheckins))
+    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Option[WeekendId]] = future {
+      db.findAndUpsertOne(Q(Weekend)
+        .where(_.uid eqs user.id)
+        .and(_.year eqs week.year)
+        .and(_.week eqs week.week)
+        .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
+      .map(_.id)
+    }
+
+    def createRatings(weekendIdOpt: Option[WeekendId]): Future[Unit] = future {
+      weekendIdOpt.foreach(weekendId => {
+        val friendIds = db.fetch(Q(Friend).where(_.self eqs user.id).select(_.other)).flatten
+        friendIds.foreach(friendId => {
+          db.upsertOne(Q(Rating)
+            .where(_.rater eqs friendId)
+            .and(_.ratee eqs user.id)
+            .and(_.weekend eqs weekendId)
+            .modify(_.weekend setTo weekendId))
+        })
+      })
     }
 
     for {
       apiCheckins <- apiCheckinsF
-      _ <- setCheckins(apiCheckins)
+      weekendIdOpt <- setCheckins(apiCheckins)
+      _ <- createRatings(weekendIdOpt)
     } yield ()
   }
 
