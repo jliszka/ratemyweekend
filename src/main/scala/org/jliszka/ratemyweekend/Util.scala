@@ -20,17 +20,21 @@ object future {
   private val pool = FuturePool(executor)
 
   def apply[A](a: => A): Future[A] = pool(a)
-  def value[A](a: A): Future[A] = Future.value(a)
 
   def groupedCollect[A, B](xs: Seq[A], par: Int)(f: A => Future[B]): Future[Seq[B]] = {
-    val groupSize = xs.size / par
-    Future.collect(xs.grouped(groupSize).toSeq.map(xs => xs.foldLeft(Future.value(Seq.empty[B])){ case (bsF, x) => {
-      for {
-        bs <- bsF
-        b <- f(x)
-        bbs <- Future.value(b +: bs)
-      } yield bbs
-    }})).map(_.map(_.reverse).flatten)
+    if (xs.size < par * 3) {
+      Future.collect(xs.map(f))
+    }
+    else {
+      val groupSize = xs.size / par
+      Future.collect(xs.grouped(groupSize).toSeq.map(xs => xs.foldLeft(Future.value(Seq.empty[B])){ case (bsF, x) => {
+        for {
+          bs <- bsF
+          b <- f(x)
+          bbs <- Future.value(b +: bs)
+        } yield bbs
+      }})).map(_.map(_.reverse).flatten)
+    }
   }
 }
 
