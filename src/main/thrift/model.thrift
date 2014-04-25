@@ -15,6 +15,7 @@ struct User {
   3: optional string firstName (wire_name="fn")
   4: optional string lastName (wire_name="ln")
   5: optional string photo (wire_name="p")
+  6: optional string tz (wire_name="tz")
 } (
   mongo_collection="users"
   mongo_identifier="ratemyweekend"

@@ -23,7 +23,7 @@ object View {
 
   class Checkins(val user: User, weekend: Weekend) extends View {
     val template = "checkins.mustache"
-    val friendlyTime = fn(s => timeFmt.print(Util.apiToDate(s.toLong)))
+    val friendlyTime = fn(s => timeFmt.print(Util.apiToDate(s.toLong, user.tzOption)))
 
     val friday = new DateTime(weekend.year, 1, 1, 0, 0, 0, 0).withWeekOfWeekyear(weekend.week).withDayOfWeek(5)
 
@@ -33,7 +33,7 @@ object View {
 
     def groupByDay(checkins: Seq[CheckinJson]): Seq[WeekendDay] = {
       checkins
-        .groupBy(c => Util.apiToDate(c.createdAt).minusHours(4).getDayOfWeek)
+        .groupBy(c => Util.apiToDate(c.createdAt, user.tzOption).minusHours(4).getDayOfWeek)
         .toSeq
         .map{ case (dayOfWeek, checkins) => WeekendDay(dayOfWeek, checkins) }
         .sortBy(_.dayOfWeek)
@@ -41,5 +41,4 @@ object View {
 
     val checkinsByDay = groupByDay(weekend.checkins)
   }
-
 }
