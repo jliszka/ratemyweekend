@@ -27,3 +27,10 @@ libraryDependencies += "com.foursquare" %% "foursquare-fhttp" % "0.1.11"
 seq(thriftSettings: _*)
 
 seq(SbtStartScript.startScriptForJarSettings: _*)
+
+initialCommands := """
+                |import com.foursquare.rogue.spindle.{SpindleQuery => Q}
+                |import org.jliszka.ratemyweekend.RogueImplicits._
+                |import org.jliszka.ratemyweekend.model.gen._
+                |import org.jliszka.ratemyweekend.model.gen.ModelTypedefs._
+                |import org.jliszka.ratemyweekend._""".stripMargin('|')
