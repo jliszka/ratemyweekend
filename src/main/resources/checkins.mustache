@@ -1,11 +1,20 @@
 {{<chrome}}
   {{$content}}
-    <h2>{{user.firstNameOption}}'s weekend</h2>
+    <h1>{{user.firstNameOption}}'s weekend</h1>
 
     {{#checkinsByDay}}
     <div class="day">
-      <h3 class="day-header">{{date}}</h3>
+
+      <h3 class="day-header">
+        {{date}}
+      </h3>
+
       {{#checkins}}
+
+      <h4 class="timestamp">
+        {{#friendlyTime}}{{createdAt}}{{/friendlyTime}}
+      </h4>
+
       <div class="checkin">
 
         {{#venueOption}}
@@ -25,16 +34,13 @@
         </div>
 
         {{#photosOption}}
+          <div class="clear"></div>
           {{#items}}
             <div class="photo">
-              <img src="{{prefix}}300x300{{suffix}}"/>
+              <img src="{{prefix}}340x340{{suffix}}"/>
             </div>
           {{/items}}
         {{/photosOption}}
-
-        <div class="timestamp">
-          {{#friendlyTime}}{{createdAt}}{{/friendlyTime}}
-        </div>
 
         <div class="with">
           {{#withOption}}

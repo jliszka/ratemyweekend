@@ -3,8 +3,8 @@
   padding: 15px;
   padding-bottom: 5px;
   margin-bottom: 20px;
-  background: #f6f6f6;
-  width: 330px;
+  background: #f0f0f0;
+  width: 370px;
 }
 
 .checkin .category {
@@ -29,11 +29,8 @@
   margin-top: 15px;
 }
 
-.checkin .timestamp {
-  font-size: 12px;
-  color: #aaa;
-  float: right;
-  margin-top: 10px;
+h4.timestamp {
+  margin-left: 15px;
 }
 
 .checkin .with {
@@ -46,7 +43,7 @@
 
 .day {
   float: left;
-  margin-right: 40px;
+  margin-right: 30px;
 }
 
 .day-header {
