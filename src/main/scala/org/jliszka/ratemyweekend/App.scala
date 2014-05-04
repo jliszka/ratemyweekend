@@ -4,6 +4,9 @@ import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.util.Future
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
+import com.twitter.finagle.http.Cookie
+import com.twitter.util.Duration
+import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.FSApi
 import org.jliszka.ratemyweekend.json.gen.{CheckinsResponseWrapper, CheckinJson}
@@ -59,6 +62,12 @@ object App extends FinatraServer {
           }
         }
       })
+    }
+
+    get("/logout") { request =>
+      val c = new Cookie("sessionid", "")
+      c.maxAge = Duration(-1, TimeUnit.DAYS)
+      redirect("/", permanent = true).cookie(c).toFuture
     }
 
     error { request =>
