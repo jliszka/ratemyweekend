@@ -17,7 +17,7 @@ class OAuthController extends Controller {
   val ClientId = "YW2OX3IMFPZ1RNZZC5QSHCFNQYKHXQTJKMHNTSK32USWXSQU"
   val ClientSecret = "01EBTETQJJMWI2W4OZWGKNGHICOTWMW1OSSTDJ3RYEGQ3RTG"
   val OAuthCallback = {
-    if (config.env() == "production")
+    if (!"development".equals(config.env()))
       "http://ratemyweekend.herokuapp.com/oauth_callback"
     else
       "http://localhost.com:7070/oauth_callback"
