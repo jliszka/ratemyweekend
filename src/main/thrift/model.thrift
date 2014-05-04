@@ -14,12 +14,18 @@ struct User {
   2: required string accessToken (wire_name="at")
   3: optional string firstName (wire_name="fn")
   4: optional string lastName (wire_name="ln")
-  5: optional string photo (wire_name="p")
+  5: optional Photo photo (wire_name="p")
   6: optional string tz (wire_name="tz")
 } (
   mongo_collection="users"
   mongo_identifier="ratemyweekend"
+  primary_key="id"
 )
+
+struct Photo {
+  1: required string prefix (wire_name="p")
+  2: required string suffix (wire_name="s")
+}
 
 struct Session {
   1: required SessionId id (wire_name="_id")
@@ -28,6 +34,8 @@ struct Session {
 } (
   mongo_collection="sessions"
   mongo_identifier="ratemyweekend"
+  primary_key="id"
+  foreign_key="uid"
 )
 
 struct Weekend {
@@ -39,6 +47,8 @@ struct Weekend {
 } (
   mongo_collection="weekends"
   mongo_identifier="ratemyweekend"
+  primary_key="id"
+  foreign_key="uid"
 )
 
 struct Rating {
@@ -50,6 +60,10 @@ struct Rating {
 } (
   mongo_collection="ratings"
   mongo_identifier="ratemyweekend"
+  primary_key="id"
+  foreign_key="rater"
+  foreign_key="ratee"
+  foreign_key="weekend"
 )
 
 struct Friend {
@@ -59,4 +73,7 @@ struct Friend {
 } (
   mongo_collection="friends"
   mongo_identifier="ratemyweekend"
+  primary_key="id"
+  foreign_key="self"
+  foreign_key="other"
 )

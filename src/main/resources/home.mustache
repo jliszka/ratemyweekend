@@ -1,12 +1,24 @@
 {{<chrome}}
   {{$content}}
 
-    {{#userOpt}}
+    {{#user}}
       <h2>Welcome, {{firstNameOption}}!</h2>
-    {{/userOpt}}
-    {{^userOpt}}
-      <h2>Please <a href="/authenticate">log in</a></h2>
-    {{/userOpt}}
+    {{/user}}
+
+    {{#needToRate}}
+      <div class="torate">
+        You have {{toRate.length}} weekends to rate.
+        Get started!
+      </div>
+      {{#checkinsByDayByUser}}
+        {{>checkin-detail}}
+      {{/checkinsByDayByUser}}
+    {{/needToRate}}
+
+    {{^needToRate}}
+    <div class="myratings">
+    </div>
+    {{/needToRate}}
 
   {{/content}}
 {{/chrome}}

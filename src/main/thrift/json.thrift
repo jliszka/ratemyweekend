@@ -22,7 +22,7 @@ struct FriendsResponse {
 
 struct FriendsJson {
   1: required i32 count
-  2: optional list<UserJson> friends
+  2: optional list<UserJson> items
 }
 
 struct UserJson {

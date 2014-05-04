@@ -1,0 +1,68 @@
+<div class="weekend">
+  <h1>
+    {{#user.photoOption}}
+      <img src="{{prefix}}40x40{{suffix}}"/>
+    {{/user.photoOption}}
+    {{user.firstNameOption}}'s weekend
+  </h1>
+
+  {{#checkinsByDay}}
+  <div class="day">
+
+    <h3 class="day-header">
+      {{date}}
+    </h3>
+
+    {{#checkins}}
+
+    <h4 class="timestamp">
+      {{#friendlyTime}}{{createdAt}}{{/friendlyTime}}
+    </h4>
+
+    <div class="checkin">
+
+      {{#venueOption}}
+        {{#categories}}
+          {{#primary}}
+            <span class="category">
+              <img src="{{icon.prefix}}bg_64{{icon.suffix}}"/>
+            </span>
+          {{/primary}}
+        {{/categories}}
+        <div class="venuename">{{name}}</div>
+        <div class="location">{{location.cityOption}}, {{location.stateOption}}</div>
+      {{/venueOption}}
+
+      <div class="shout">
+        {{#shoutOption}}"{{toString}}"{{/shoutOption}}
+      </div>
+
+      {{#photosOption}}
+        <div class="clear"></div>
+        {{#items}}
+          <div class="photo">
+            <img src="{{prefix}}310x310{{suffix}}"/>
+          </div>
+        {{/items}}
+      {{/photosOption}}
+
+      {{#withOption}}
+      <div class="with">
+          {{#photoOption}}
+            <img src="{{prefix}}40x40{{suffix}}"/>
+          {{/photoOption}}
+      </div>
+      {{/withOption}}
+
+      <div class="clear"></div>
+    </div>
+    {{/checkins}}
+    {{^checkins}}
+      <h4 class="nocheckins">
+        no check-ins!
+      </h4>
+    {{/checkins}}
+  </div>
+  {{/checkinsByDay}}
+  <div class="clear"></div>
+</div>

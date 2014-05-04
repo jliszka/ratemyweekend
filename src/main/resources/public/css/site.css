@@ -1,10 +1,10 @@
 
 .checkin {
   padding: 15px;
-  padding-bottom: 5px;
+  padding-bottom: 15px;
   margin-bottom: 20px;
   background: #f0f0f0;
-  width: 370px;
+  width: 340px;
 }
 
 .checkin .category {
@@ -44,7 +44,12 @@ h4.timestamp {
 .day {
   float: left;
   margin-right: 30px;
+  width: 340px;
 }
 
 .day-header {
+}
+
+.nocheckins {
+  color: #aaa;
 }

@@ -5,7 +5,7 @@ import com.twitter.util.Future
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.{FS, FSApi}
 import org.jliszka.ratemyweekend.json.gen.{CheckinJson, CheckinsResponseWrapper, FriendsResponseWrapper, UserJson, UserResponseWrapper}
-import org.jliszka.ratemyweekend.model.gen.{Friend, Rating, Session, User, Weekend}
+import org.jliszka.ratemyweekend.model.gen.{Friend, Photo, Rating, Session, User, Weekend}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{FriendId, SessionId, UserId, WeekendId}
 import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
@@ -26,45 +26,57 @@ object Actions {
         .findAndModify(_.accessToken setTo token)
         .andOpt(fsUser.firstNameOption)(_.firstName setTo _)
         .andOpt(fsUser.lastNameOption)(_.lastName setTo _)
-        .andOpt(fsUser.photoOption.map(p => p.prefix + "100x100" + p.suffix))(_.photo setTo _),
+        .andOpt(fsUser.photoOption.map(p => Photo(p.prefix, p.suffix)))(_.photo setTo _),
       returnNew = true).get
     }
 
     for {
       fsUser <- fsUserF
       user <- userF(fsUser)
-      _ <- syncFriends(user)
+      _ <- syncUser(user)
     } yield user
   }
 
-  def syncFriends(user: User): Future[Unit] = {
+  def syncUser(user: User): Future[Unit] = {
+    for {
+      friendIds <- syncFriends(user)
+      (weekendId, _) <- future.join(
+        syncCheckins(user, friendIds, Week.thisWeek),
+        collectRatings(user, friendIds, Week.thisWeek))
+    } yield ()
+  }
 
-    val fsFriendsF: Future[Seq[UserId]] = {
+  def resetDB() {
+    db.bulkDelete_!!(Q(Rating))
+    db.bulkDelete_!!(Q(Weekend))
+    db.bulkDelete_!!(Q(Friend))
+    val uid = UserId("364701")
+    makeFriends(uid, uid)
+    val u = db.fetchOne(Q(User).where(_.id eqs uid)).get
+    (3 to 0 by -1).foreach(n => {
+      val week = Week.weekAgo(n)
+      syncCheckins(u, List(u.id), week)()
+      collectRatings(u, List(u.id), week)()
+    })
+  }
+
+  def syncFriends(user: User): Future[Seq[UserId]] = {
+
+    val fsFriendIdsF: Future[Seq[UserId]] = {
       FSApi(s"/v2/users/${user.id}/friends")
         .params("oauth_token" -> user.accessToken, "v" -> "20140101")
         .getFuture()
-        .map(Json.parse(_, FriendsResponseWrapper).response.friends.friends.map(f => UserId(f.id)))
+        .map(Json.parse(_, FriendsResponseWrapper).response.friends.items.map(f => UserId(f.id)))
     }
 
-    def setFriends(friends: Seq[UserId]): Future[Unit] = future {
+    def saveFriends(friends: Seq[UserId]): Future[Unit] = future {
       val dbFriendIds = db.fetch(Q(Friend).where(_.self eqs user.id)).map(_.other).toSet
-      val fsFriendIds = friends.toSet
+      val fsFriendIds = db.fetch(Q(User).where(_.id in friends).select(_.id)).flatten.toSet
 
       val toAdd = fsFriendIds -- dbFriendIds
       val toRemove = dbFriendIds -- fsFriendIds
 
-      toAdd.foreach(fid => {
-        db.save(Friend.newBuilder
-          .id(FriendId(new ObjectId))
-          .self(user.id)
-          .other(fid)
-          .result)
-        db.save(Friend.newBuilder
-          .id(FriendId(new ObjectId))
-          .self(fid)
-          .other(user.id)
-          .result)
-      })
+      toAdd.foreach(fid => makeFriends(user.id, fid))
 
       db.bulkDelete_!!(Q(Friend)
         .where(_.self eqs user.id)
@@ -76,9 +88,22 @@ object Actions {
     }
 
     for {
-      fsFriends <- fsFriendsF
-      _ <- setFriends(fsFriends)
-    } yield ()
+      fsFriendIds <- fsFriendIdsF
+      _ <- saveFriends(fsFriendIds)
+    } yield fsFriendIds
+  }
+
+  def makeFriends(u1: UserId, u2: UserId) {
+    db.insert(Friend.newBuilder
+      .id(FriendId(new ObjectId))
+      .self(u1)
+      .other(u2)
+      .result)
+    db.insert(Friend.newBuilder
+      .id(FriendId(new ObjectId))
+      .self(u2)
+      .other(u1)
+      .result)
   }
 
   def syncCheckins(week: Week): Future[Unit] = {
@@ -95,8 +120,11 @@ object Actions {
       db.fetch(Q(User))
     }
 
-    def syncUsers(users: Seq[User]): Future[Seq[Unit]] = {
-      future.groupedCollect(users, 5)(user => Actions.syncCheckins(user, week))
+    def syncUsers(users: Seq[User]): Future[Seq[WeekendId]] = {
+      future.groupedCollect(users, 5)(user => {
+        val friendIds = db.fetch(Q(Friend).where(_.self eqs user.id).select(_.other)).flatten
+        Actions.syncCheckins(user, friendIds, week)
+      })
     }
 
     for {
@@ -107,7 +135,7 @@ object Actions {
     } yield ()
   }
 
-  def syncCheckins(user: User, week: Week): Future[Unit] = {
+  def syncCheckins(user: User, friendIds: Seq[UserId], week: Week): Future[WeekendId] = {
 
     val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
       .params("oauth_token" -> user.accessToken, "v" -> "20140101")
@@ -118,33 +146,74 @@ object Actions {
       .getFuture()
       .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
 
-    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Option[WeekendId]] = future {
+    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[WeekendId] = future {
       db.findAndUpsertOne(Q(Weekend)
         .where(_.uid eqs user.id)
         .and(_.year eqs week.year)
         .and(_.week eqs week.week)
         .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
-      .map(_.id)
+      .get.id
     }
 
-    def createRatings(weekendIdOpt: Option[WeekendId]): Future[Unit] = future {
-      weekendIdOpt.foreach(weekendId => {
-        val friendIds = db.fetch(Q(Friend).where(_.self eqs user.id).select(_.other)).flatten
-        friendIds.foreach(friendId => {
-          db.upsertOne(Q(Rating)
-            .where(_.rater eqs friendId)
-            .and(_.ratee eqs user.id)
-            .and(_.weekend eqs weekendId)
-            .modify(_.weekend setTo weekendId))
-        })
-      })
+    def createRatings(weekendId: WeekendId): Future[Unit] = future {
+      future.groupedCollect(friendIds, 5)(friendId =>
+        createRating(ratee = user.id, rater = friendId, weekendId = weekendId))
     }
 
     for {
       apiCheckins <- apiCheckinsF
-      weekendIdOpt <- setCheckins(apiCheckins)
-      _ <- createRatings(weekendIdOpt)
+      weekendId <- setCheckins(apiCheckins)
+      _ <- createRatings(weekendId)
+    } yield weekendId
+  }
+
+  def createRating(ratee: UserId, rater: UserId, weekendId: WeekendId): Future[Unit] = future {
+    db.upsertOne(Q(Rating)
+      .where(_.rater eqs rater)
+      .and(_.ratee eqs ratee)
+      .and(_.weekend eqs weekendId)
+      .modify(_.weekend setTo weekendId))
+  }
+
+  def collectRatings(user: User, friendIds: Seq[UserId], week: Week): Future[Unit] = {
+    val weekendsF: Future[Seq[(WeekendId, UserId)]] = future(Util.flatten2(db.fetch(Q(Weekend)
+      .where(_.uid in friendIds)
+      .and(_.year eqs week.year)
+      .and(_.week eqs week.week)
+      .select(_.id, _.uid))))
+
+    def createRatings(weekends: Seq[(WeekendId, UserId)]): Future[Seq[Unit]] = {
+      future.groupedCollect(weekends, 5)(weekend => {
+        val (weekendId, friendId) = weekend
+        createRating(ratee = friendId, rater = user.id, weekendId = weekendId)
+      })
+    }
+
+    for {
+      weekends <- weekendsF
+      _ <- createRatings(weekends)
     } yield ()
+  }
+
+  def weekendsToRate(user: User): Future[Seq[(User, Weekend)]] = future {
+    val ratings = db.fetch(Q(Rating)
+      .where(_.rater eqs user.id)
+      .and(_.score exists false))
+
+    val userMap = Util.idMap(User, ratings.map(_.ratee))
+    val weekendMap = Util.idMap(Weekend, ratings.map(_.weekend))
+
+    for {
+      rating <- ratings
+      user <- userMap.get(rating.ratee)
+      weekend <- weekendMap.get(rating.weekend)
+    } yield (user, weekend)
+  }
+
+  def myRatings(user: User): Future[Seq[Rating]] = future {
+    db.fetch(Q(Rating)
+      .where(_.ratee eqs user.id)
+      .and(_.score exists true))
   }
 
   def createSession(user: User): Future[Session] = future {

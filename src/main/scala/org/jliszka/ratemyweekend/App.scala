@@ -4,7 +4,6 @@ import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.util.Future
 import com.twitter.finatra._
 import com.twitter.finatra.ContentType._
-import java.io.{PrintWriter, StringWriter}
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.FSApi
 import org.jliszka.ratemyweekend.json.gen.{CheckinsResponseWrapper, CheckinJson}
@@ -18,22 +17,31 @@ object App extends FinatraServer {
   class ThrinatraController extends Controller {
 
     get("/") { request =>
-      val userOpt = loggedInUser(request)
-      val template = new View.Home(userOpt)
-      render.view(template).toFuture
+      loggedInUser(request).flatMap(userOpt => userOpt match {
+        case None => render.view(new View.Index).toFuture
+        case Some(user) => {
+          val toRateF = Actions.weekendsToRate(user)
+          val myRatingsF = Actions.myRatings(user)
+          for {
+            toRate <- toRateF
+            myRatings <- myRatingsF
+            template = new View.Home(user, toRate, myRatings)
+            r <- render.view(template).toFuture
+          } yield r
+        }
+      })
     }
 
     get("/sync") { request =>
       val week = Week.thisWeek
       for {
         _ <- Actions.syncCheckins(week)
-      } yield {
-        render.status(200).plain("ok")
-      }
+        r <- render.status(200).plain("ok").toFuture
+      } yield r
     }
 
-    get("/checkins") { request =>
-      loggedInUser(request) match {
+    get("/myweek") { request =>
+      loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => redirect("/").toFuture
         case Some(user) => future {
 
@@ -46,22 +54,18 @@ object App extends FinatraServer {
           weekendOpt match {
             case None => redirect("/")
             case Some(weekend) => {
-              val template = new View.Checkins(user, weekend)
+              val template = new View.MyWeek(user, weekend)
               render.view(template)
             }
           }
         }
-      }
+      })
     }
 
     error { request =>
       request.error match {
         case Some(e: Exception) => {
-          val writer = new StringWriter
-          val printWriter = new PrintWriter(writer)
-          e.printStackTrace(printWriter)
-          printWriter.flush()
-          val stackTrace = writer.toString
+          val stackTrace = Util.getStackTrace(e)
           render.status(500).plain(e.getMessage + "\n" + stackTrace).toFuture
         }
         case _ => render.status(500).plain("Something went wrong!").toFuture
@@ -72,7 +76,7 @@ object App extends FinatraServer {
       render.status(404).plain("not found yo").toFuture
     }
 
-    def loggedInUser(request: Request): Option[User] = {
+    def loggedInUser(request: Request): Future[Option[User]] = future {
       for {
         sessionId <- request.cookies.get("sessionid").map(c => SessionId(new ObjectId(c.value)))
         session <- db.findAndUpdateOne(Q(Session).where(_.id eqs sessionId).findAndModify(_.lastUsed setTo DateTime.now))

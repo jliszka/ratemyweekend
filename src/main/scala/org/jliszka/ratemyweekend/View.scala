@@ -3,13 +3,13 @@ package org.jliszka.ratemyweekend
 import com.google.common.base.{Function => GFunction}
 import com.twitter.finatra._
 import org.jliszka.ratemyweekend.json.gen.CheckinJson
-import org.jliszka.ratemyweekend.model.gen.{Session, User, Weekend}
+import org.jliszka.ratemyweekend.model.gen.{Rating, Session, User, Weekend}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId, WeekendId}
 import org.joda.time.{DateTime, DateTimeZone}
 import org.joda.time.format.DateTimeFormat
 
 object View {
-  def fn(f: String => String): GFunction[String, String] = new GFunction[String, String] {
+  private def fn(f: String => String): GFunction[String, String] = new GFunction[String, String] {
     def apply(s: String) = f(s)
   }
 
@@ -17,28 +17,44 @@ object View {
   private val dateFmt = DateTimeFormat.forPattern("EEEE, MMMM d")
   private val timeFmt = DateTimeFormat.forPattern("h:mm aa")
 
-  class Home(val userOpt: Option[User]) extends View {
-    val template = "home.mustache"
+  class Index extends View {
+    val template = "index.mustache"
   }
 
-  class Checkins(val user: User, weekend: Weekend) extends View {
-    val template = "checkins.mustache"
+  trait ViewUtil {
+    val user: User
     val friendlyTime = fn(s => timeFmt.print(Util.apiToDate(s.toLong, user.tzOption)))
+  }
 
-    val friday = new DateTime(weekend.year, 1, 1, 0, 0, 0, 0).withWeekOfWeekyear(weekend.week).withDayOfWeek(5)
+  trait WeekendUtil {
+    val user: User
 
-    case class WeekendDay(dayOfWeek: Int, checkins: Seq[CheckinJson]) {
-      val date = dateFmt.print(friday.withDayOfWeek(dayOfWeek))
+    case class WeekendDay(week: Week, dayOfWeek: Int, checkins: Seq[CheckinJson]) {
+      val date = dateFmt.print(week.friday5pm.withDayOfWeek(dayOfWeek))
     }
 
-    def groupByDay(checkins: Seq[CheckinJson]): Seq[WeekendDay] = {
-      checkins
+    def groupByDay(week: Week, checkins: Seq[CheckinJson]): Seq[WeekendDay] = {
+      val dayMap = checkins
         .groupBy(c => Util.apiToDate(c.createdAt, user.tzOption).minusHours(4).getDayOfWeek)
-        .toSeq
-        .map{ case (dayOfWeek, checkins) => WeekendDay(dayOfWeek, checkins) }
-        .sortBy(_.dayOfWeek)
+      Seq(5, 6, 7).map(d => WeekendDay(week, d, dayMap.getOrElse(d, Seq.empty)))
     }
+  }
 
-    val checkinsByDay = groupByDay(weekend.checkins)
+  class Home(val user: User, val toRate: Seq[(User, Weekend)], val myRatings: Seq[Rating])
+      extends View with ViewUtil with WeekendUtil {
+    val template = "home.mustache"
+    val needToRate = toRate.nonEmpty
+    val checkinsByDayByUser = for {
+      (user, weekend) <- toRate
+      week = Week(weekend.year, weekend.week)
+    } yield UserWeekendDay(user, week, groupByDay(week, weekend.checkins))
+
+    case class UserWeekendDay(user: User, week: Week, checkinsByDay: Seq[WeekendDay])
+  }
+
+  class MyWeek(val user: User, weekend: Weekend) extends View with ViewUtil with WeekendUtil {
+    val template = "checkins.mustache"
+    val checkinsByDay = groupByDay(Week(weekend.year, weekend.week), weekend.checkins)
   }
 }
+
