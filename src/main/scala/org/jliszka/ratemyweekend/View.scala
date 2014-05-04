@@ -18,7 +18,7 @@ object View {
   private val timeFmt = DateTimeFormat.forPattern("h:mm aa")
 
   class Index extends View {
-    val template = "index.mustache"
+    val template = "index.html"
   }
 
   trait ViewUtil {
@@ -42,7 +42,7 @@ object View {
 
   class Home(val user: User, val toRate: Seq[(User, Weekend)], val myRatings: Seq[Rating])
       extends View with ViewUtil with WeekendUtil {
-    val template = "home.mustache"
+    val template = "home.html"
     val needToRate = toRate.nonEmpty
     val checkinsByDayByUser = for {
       (user, weekend) <- toRate
@@ -53,7 +53,7 @@ object View {
   }
 
   class MyWeek(val user: User, weekend: Weekend) extends View with ViewUtil with WeekendUtil {
-    val template = "checkins.mustache"
+    val template = "checkins.html"
     val checkinsByDay = groupByDay(Week(weekend.year, weekend.week), weekend.checkins)
   }
 }

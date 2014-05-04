@@ -1,4 +1,4 @@
-{{<chrome}}
+{{<chrome.html}}
   {{$content}}
 
     {{#user}}
@@ -11,7 +11,7 @@
         Get started!
       </div>
       {{#checkinsByDayByUser}}
-        {{>checkin-detail}}
+        {{>checkin-detail.html}}
       {{/checkinsByDayByUser}}
     {{/needToRate}}
 
@@ -21,4 +21,4 @@
     {{/needToRate}}
 
   {{/content}}
-{{/chrome}}
+{{/chrome.html}}
