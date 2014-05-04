@@ -35,6 +35,8 @@ h4.timestamp {
 
 .checkin .with {
   margin-top: 10px;
+  margin-right: 10px;
+  float: left;
 }
 
 .clear {
