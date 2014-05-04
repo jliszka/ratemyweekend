@@ -33,4 +33,6 @@ initialCommands := """
                 |import org.jliszka.ratemyweekend.RogueImplicits._
                 |import org.jliszka.ratemyweekend.model.gen._
                 |import org.jliszka.ratemyweekend.model.gen.ModelTypedefs._
-                |import org.jliszka.ratemyweekend._""".stripMargin('|')
+                |import org.jliszka.ratemyweekend._
+                |import org.bson.types.ObjectId
+                |import org.joda.time.DateTime""".stripMargin('|')
