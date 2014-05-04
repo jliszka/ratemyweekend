@@ -128,8 +128,7 @@ object Actions {
     }
 
     for {
-      doneUsers <- doneUsersF
-      users <- usersF
+      (doneUsers, users) <- future.join(doneUsersF, usersF)
       toSync = users.filterNot(u => doneUsers(u.id))
       _ <- syncUsers(users)
     } yield ()

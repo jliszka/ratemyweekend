@@ -23,8 +23,7 @@ object App extends FinatraServer {
           val toRateF = Actions.weekendsToRate(user)
           val myRatingsF = Actions.myRatings(user)
           for {
-            toRate <- toRateF
-            myRatings <- myRatingsF
+            (toRate, myRatings) <- future.join(toRateF, myRatingsF)
             template = new View.Home(user, toRate, myRatings)
             r <- render.view(template).toFuture
           } yield r
