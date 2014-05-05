@@ -40,16 +40,17 @@ object View {
     }
   }
 
-  class Home(val user: User, val toRate: Seq[(User, Weekend)], val myRatings: Seq[Rating])
+  class Home(val user: User, val toRate: Seq[(Rating, User, Weekend)], val myRatings: Seq[Rating])
       extends FixedView with ViewUtil with WeekendUtil {
     val template = "home.html"
     val needToRate = toRate.nonEmpty
     val checkinsByDayByUser = for {
-      (user, weekend) <- toRate
+      (rating, user, weekend) <- toRate
       week = Week(weekend.year, weekend.week)
-    } yield UserWeekendDay(user, week, groupByDay(week, weekend.checkins))
+    } yield UserWeekendDay(rating, user, week, groupByDay(week, weekend.checkins))
+    val ratingOptions = 1 to 10
 
-    case class UserWeekendDay(user: User, week: Week, checkinsByDay: Seq[WeekendDay])
+    case class UserWeekendDay(rating: Rating, user: User, week: Week, checkinsByDay: Seq[WeekendDay])
   }
 
   class MyWeek(val user: User, weekend: Weekend) extends FixedView with ViewUtil with WeekendUtil {

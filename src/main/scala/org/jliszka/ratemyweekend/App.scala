@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.FSApi
 import org.jliszka.ratemyweekend.json.gen.{CheckinsResponseWrapper, CheckinJson}
-import org.jliszka.ratemyweekend.model.gen.{Session, User, Weekend}
-import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId, WeekendId}
+import org.jliszka.ratemyweekend.model.gen.{Rating, Session, User, Weekend}
+import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{RatingId, SessionId, UserId, WeekendId}
 import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
 
@@ -60,6 +60,20 @@ object App extends FinatraServer {
               render.view(template)
             }
           }
+        }
+      })
+    }
+
+    post("/rate/:rid") { request =>
+      loggedInUser(request).flatMap(userOpt => userOpt match {
+        case None => render.status(400).plain("not logged in").toFuture
+        case Some(user) => future {
+          val ratingId = RatingId(new ObjectId(request.routeParams.getOrElse("rid", ???)))
+          val score = Integer.parseInt(request.params.getOrElse("score", ???))
+          db.updateOne(Q(Rating)
+            .where(_.id eqs ratingId)
+            .modify(_.score setTo score))
+          render.status(200).plain("ok")
         }
       })
     }

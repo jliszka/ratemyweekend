@@ -194,7 +194,7 @@ object Actions {
     } yield ()
   }
 
-  def weekendsToRate(user: User): Future[Seq[(User, Weekend)]] = future {
+  def weekendsToRate(user: User): Future[Seq[(Rating, User, Weekend)]] = future {
     val ratings = db.fetch(Q(Rating)
       .where(_.rater eqs user.id)
       .and(_.score exists false))
@@ -206,7 +206,7 @@ object Actions {
       rating <- ratings
       user <- userMap.get(rating.ratee)
       weekend <- weekendMap.get(rating.weekend)
-    } yield (user, weekend)
+    } yield (rating, user, weekend)
   }
 
   def myRatings(user: User): Future[Seq[Rating]] = future {

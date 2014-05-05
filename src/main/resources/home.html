@@ -1,4 +1,13 @@
 {{<chrome}}
+
+  {{$js}}
+    function rate(rid, score) {
+      $('#rate-'+rid+' .rating-option').removeClass('selected');
+      $('#rate-'+rid+'-'+score).addClass('selected');
+      $.ajax('/rate/'+rid, { type: 'POST', data: { score: score }});
+    }
+  {{/js}}
+
   {{$content}}
 
     {{#user}}
@@ -12,6 +21,13 @@
       </div>
       {{#checkinsByDayByUser}}
         {{>checkin-detail}}
+        <div class="rate" id="rate-{{rating.id}}">
+          <h4 class="rating-label">Your rating:</h4>
+          {{#ratingOptions}}
+            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">{{toString}}</div>
+          {{/ratingOptions}}
+          <div class="clear"></div>
+        </div>
       {{/checkinsByDayByUser}}
     {{/needToRate}}
 

@@ -55,3 +55,27 @@ h4.timestamp {
 .nocheckins {
   color: #aaa;
 }
+
+.rate {
+  text-align: center;
+}
+
+.rating-label {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.rating-option {
+  border: 1px solid #ccc;
+  width: 30px;
+  height: 30px;
+  padding: 4px;
+  margin: 3px;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+}
+
+.rating-option:hover, .rating-option.selected {
+  background: #ddd;
+}
