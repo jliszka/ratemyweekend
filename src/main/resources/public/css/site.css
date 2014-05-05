@@ -1,4 +1,8 @@
 
+.weekend {
+  margin-bottom: 50px;
+}
+
 .checkin {
   padding: 15px;
   padding-bottom: 15px;
@@ -57,7 +61,7 @@ h4.timestamp {
 }
 
 .rate {
-  text-align: center;
+  padding-left: 232px;
 }
 
 .rating-label {
@@ -80,16 +84,31 @@ h4.timestamp {
   background: #ddd;
 }
 
+.rating-option-submit {
+  width: auto;
+  background: #ccc;
+  padding: 4px 8px;
+  display: none;
+}
+
+.rating-summary {
+  display: none;
+}
 .leaderboard ol,
 .leaderboard li {
   font-size: 24px;
   margin-bottom: 5px;
 }
 
-.leaderboard .score {
+.score {
   display: inline-block;
   padding: 2px 4px;
   margin-left: 6px;
   border: 1px solid #ccc;
   background: #ddd;
+}
+
+.rating-summary .score {
+  padding: 2px 12px;
+  cursor: pointer;
 }
