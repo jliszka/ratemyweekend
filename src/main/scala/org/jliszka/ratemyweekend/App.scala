@@ -42,6 +42,11 @@ object App extends FinatraServer {
       } yield r
     }
 
+    get("/schema") { request => future {
+      Batch.updateSchema(request.params.getOrElse("v", ???).toInt)
+      render.status(200).plain("ok")
+    }}
+
     get("/myweek") { request =>
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => redirect("/").toFuture
@@ -74,6 +79,20 @@ object App extends FinatraServer {
             .where(_.id eqs ratingId)
             .modify(_.score setTo score))
           render.status(200).plain("ok")
+        }
+      })
+    }
+
+    get("/leaderboard") { request =>
+      loggedInUser(request).flatMap(userOpt => userOpt match {
+        case None => redirect("/").toFuture
+        case Some(user) => {
+          val friendScoresF: Future[Seq[(User, Double)]] = Actions.getFriendScores(user)
+          for {
+            friendScores <- friendScoresF
+            template = new View.Leaderboard(user, friendScores)
+            r <- render.view(template).toFuture
+          } yield r
         }
       })
     }

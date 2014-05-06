@@ -46,7 +46,7 @@ object View {
     val needToRate = toRate.nonEmpty
     val checkinsByDayByUser = for {
       (rating, user, weekend) <- toRate
-      week = Week(weekend.year, weekend.week)
+      week = Week(weekend.week)
     } yield UserWeekendDay(rating, user, week, groupByDay(week, weekend.checkins))
     val ratingOptions = 1 to 10
 
@@ -55,7 +55,13 @@ object View {
 
   class MyWeek(val user: User, weekend: Weekend) extends FixedView with ViewUtil with WeekendUtil {
     val template = "checkins.html"
-    val checkinsByDay = groupByDay(Week(weekend.year, weekend.week), weekend.checkins)
+    val checkinsByDay = groupByDay(Week(weekend.week), weekend.checkins)
+  }
+
+  class Leaderboard(val user: User, scores: Seq[(User, Double)]) extends FixedView {
+    val template = "leaderboard.html"
+    case class UserScore(user: User, score: String)
+    val leaderboard = scores.sortBy(_._2).reverse.map{ case (u, s) => UserScore(u, "%.1f".format(s)) }
   }
 }
 

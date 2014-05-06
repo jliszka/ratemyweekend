@@ -57,6 +57,7 @@ struct Rating {
   3: required UserId ratee (wire_name="e")
   4: required WeekendId weekend (wire_name="w")
   5: optional i32 score (wire_name="s")
+  6: required i32 week (wire_name="k")
 } (
   mongo_collection="ratings"
   mongo_identifier="ratemyweekend"

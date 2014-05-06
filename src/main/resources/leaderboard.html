@@ -1,0 +1,19 @@
+{{<chrome}}
+  {{$content}}
+
+  <h1>Leaderboard</h1>
+
+  <ol class="leaderboard">
+  {{#leaderboard}}
+    <li>
+      {{#user.photoOption}}
+        <img src="{{prefix}}40x40{{suffix}}"/>
+      {{/user.photoOption}}
+      {{user.firstNameOption}}
+      <span class="score">{{score}}</span>
+    </li>
+  {{/leaderboard}}
+  </ol>
+
+  {{/content}}
+{{/chrome}}

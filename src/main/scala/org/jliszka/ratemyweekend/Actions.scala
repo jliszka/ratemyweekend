@@ -46,20 +46,6 @@ object Actions {
     } yield ()
   }
 
-  def resetDB() {
-    db.bulkDelete_!!(Q(Rating))
-    db.bulkDelete_!!(Q(Weekend))
-    db.bulkDelete_!!(Q(Friend))
-    val uid = UserId("364701")
-    makeFriends(uid, uid)
-    val u = db.fetchOne(Q(User).where(_.id eqs uid)).get
-    (3 to 0 by -1).foreach(n => {
-      val week = Week.weekAgo(n)
-      syncCheckins(u, List(u.id), week)()
-      collectRatings(u, List(u.id), week)()
-    })
-  }
-
   def syncFriends(user: User): Future[Seq[UserId]] = {
 
     val fsFriendIdsF: Future[Seq[UserId]] = {
@@ -70,8 +56,8 @@ object Actions {
     }
 
     def saveFriends(friends: Seq[UserId]): Future[Unit] = future {
-      val dbFriendIds = db.fetch(Q(Friend).where(_.self eqs user.id)).map(_.other).toSet
-      val fsFriendIds = db.fetch(Q(User).where(_.id in friends).select(_.id)).flatten.toSet
+      val dbFriendIds: Set[UserId] = getFriendIds(user.id).toSet
+      val fsFriendIds: Set[UserId] = db.fetch(Q(User).where(_.id in friends).select(_.id)).flatten.toSet
 
       val toAdd = fsFriendIds -- dbFriendIds
       val toRemove = dbFriendIds -- fsFriendIds
@@ -110,7 +96,6 @@ object Actions {
 
     val doneUsersF: Future[Set[UserId]] = future {
       db.fetch(Q(Weekend)
-        .where(_.year eqs week.year)
         .and(_.week eqs week.week)
       .select(_.uid))
       .flatten.toSet
@@ -122,7 +107,7 @@ object Actions {
 
     def syncUsers(users: Seq[User]): Future[Seq[WeekendId]] = {
       future.groupedCollect(users, 5)(user => {
-        val friendIds = db.fetch(Q(Friend).where(_.self eqs user.id).select(_.other)).flatten
+        val friendIds = getFriendIds(user.id)
         Actions.syncCheckins(user, friendIds, week)
       })
     }
@@ -132,6 +117,15 @@ object Actions {
       toSync = users.filterNot(u => doneUsers(u.id))
       _ <- syncUsers(users)
     } yield ()
+  }
+
+  def getFriendIds(userId: UserId): Seq[UserId] = {
+    db.fetch(Q(Friend).where(_.self eqs userId).select(_.other)).flatten
+  }
+
+  def getFriends(userId: UserId): Seq[User] = {
+    val friendIds = getFriendIds(userId)
+    db.fetch(Q(User).where(_.id in friendIds))
   }
 
   def syncCheckins(user: User, friendIds: Seq[UserId], week: Week): Future[WeekendId] = {
@@ -148,7 +142,6 @@ object Actions {
     def setCheckins(apiCheckins: Seq[CheckinJson]): Future[WeekendId] = future {
       db.findAndUpsertOne(Q(Weekend)
         .where(_.uid eqs user.id)
-        .and(_.year eqs week.year)
         .and(_.week eqs week.week)
         .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
       .get.id
@@ -156,7 +149,7 @@ object Actions {
 
     def createRatings(weekendId: WeekendId): Future[Unit] = future {
       future.groupedCollect(friendIds, 5)(friendId =>
-        createRating(ratee = user.id, rater = friendId, weekendId = weekendId))
+        createRating(ratee = user.id, rater = friendId, weekendId = weekendId, week = week))
     }
 
     for {
@@ -166,25 +159,25 @@ object Actions {
     } yield weekendId
   }
 
-  def createRating(ratee: UserId, rater: UserId, weekendId: WeekendId): Future[Unit] = future {
+  def createRating(ratee: UserId, rater: UserId, weekendId: WeekendId, week: Week): Future[Unit] = future {
     db.upsertOne(Q(Rating)
       .where(_.rater eqs rater)
       .and(_.ratee eqs ratee)
       .and(_.weekend eqs weekendId)
+      .and(_.week eqs week.week)
       .modify(_.weekend setTo weekendId))
   }
 
   def collectRatings(user: User, friendIds: Seq[UserId], week: Week): Future[Unit] = {
     val weekendsF: Future[Seq[(WeekendId, UserId)]] = future(Util.flatten2(db.fetch(Q(Weekend)
       .where(_.uid in friendIds)
-      .and(_.year eqs week.year)
       .and(_.week eqs week.week)
       .select(_.id, _.uid))))
 
     def createRatings(weekends: Seq[(WeekendId, UserId)]): Future[Seq[Unit]] = {
       future.groupedCollect(weekends, 5)(weekend => {
         val (weekendId, friendId) = weekend
-        createRating(ratee = friendId, rater = user.id, weekendId = weekendId)
+        createRating(ratee = friendId, rater = user.id, weekendId = weekendId, week = week)
       })
     }
 
@@ -213,6 +206,30 @@ object Actions {
     db.fetch(Q(Rating)
       .where(_.ratee eqs user.id)
       .and(_.score exists true))
+  }
+
+  def getFriendScores(user: User): Future[Seq[(User, Double)]] = future {
+    val friends = user +: getFriends(user.id)
+    val userMap = friends.map(u => u.id -> u).toMap
+    val week = Week.weekAgo(10)
+
+    def computeScore(ratings: Seq[Rating]): Double = {
+      val scores = ratings.flatMap(_.scoreOption)
+      if (scores.isEmpty) 0.0
+      else scores.sum.toDouble / scores.size
+    }
+
+    val ratings = db.fetch(Q(Rating)
+      .where(_.ratee in friends.map(_.id))
+      .and(_.week >= week.week)
+      .and(_.score exists true))
+      .groupBy(_.ratee)
+      .toSeq
+
+    for {
+      (userId, ratings) <- ratings
+      user <- userMap.get(userId)
+    } yield (user, computeScore(ratings))
   }
 
   def createSession(user: User): Future[Session] = future {

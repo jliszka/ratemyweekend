@@ -84,13 +84,15 @@ object future {
 class Week(d: DateTime) {
   val friday5pm = d.withZone(Util.tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
   val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
-  val year = friday5pm.getYear
-  val week = friday5pm.getWeekOfWeekyear
+  val week = (friday5pm.getYear - 2014) * 100 + friday5pm.getWeekOfWeekyear
 }
 
 object Week {
   val thisWeek = new Week(DateTime.now)
-  def apply(year: Int, week: Int) = {
+  def apply(week: Int): Week = {
+    apply(week / 100 + 2014, week % 100)
+  }
+  def apply(year: Int, week: Int): Week = {
     val d = new DateTime(year, 1, 1, 0, 0, 0, 0)
       .withWeekOfWeekyear(week)
       .withDayOfWeek(5)

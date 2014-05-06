@@ -79,3 +79,16 @@ h4.timestamp {
 .rating-option:hover, .rating-option.selected {
   background: #ddd;
 }
+
+.leaderboard ol,
+.leaderboard li {
+  font-size: 30px;
+}
+
+.leaderboard .score {
+  display: inline-block;
+  padding: 5px 7px;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  background: #ddd;
+}
