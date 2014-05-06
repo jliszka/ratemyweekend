@@ -29,7 +29,6 @@ object Batch {
       w <- db.fetchOne(Q(Weekend).where(_.id eqs r.weekend))  
     } {
       db.updateOne(Q(Rating).where(_.id eqs r.id).modify(_.week setTo w.week))
-      db.updateOne(Q(Weekend).where(_.id eqs w.id).modify(_.year unset))
     }
   }
 

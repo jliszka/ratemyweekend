@@ -41,7 +41,7 @@ struct Session {
 struct Weekend {
   1: required WeekendId id (wire_name="_id")
   2: required UserId uid (wire_name="u")
-  3: required i32 year (wire_name="y")
+  // 3: required i32 year (wire_name="y")
   4: required i32 week (wire_name="w")
   5: required list<json.CheckinJson> checkins (wire_name="c")
 } (
