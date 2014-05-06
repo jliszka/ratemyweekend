@@ -43,7 +43,7 @@ object View {
   class Home(val user: User, val toRate: Seq[(Rating, User, Weekend)], val myRatings: Seq[Rating])
       extends FixedView with ViewUtil with WeekendUtil {
     val template = "home.html"
-    val needToRate = toRate.nonEmpty
+    val needToRate = toRate.exists(_._1.scoreOption.isEmpty)
     val checkinsByDayByUser = for {
       (rating, user, weekend) <- toRate
       week = Week(weekend.week)

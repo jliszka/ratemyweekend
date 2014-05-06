@@ -21,6 +21,14 @@
       $('#weekend-'+rid).show();
       $('#rating-'+rid).hide();
     }
+
+    $(function() {
+      $('.rate').each(function(i, el) {
+        var score = $(el).attr('data');
+        $('#'+el.id+'-'+score).addClass('selected');
+      })
+    });
+
   {{/js}}
 
   {{$content}}
@@ -29,37 +37,41 @@
       <h2>Welcome, {{firstNameOption}}!</h2>
     {{/user}}
 
+    <div class="torate">
     {{#needToRate}}
-      <div class="torate">
-        You have {{toRate.length}} weekends to rate.
-        Get started!
-      </div>
-      {{#checkinsByDayByUser}}
-        <h1 class="weekend-header">
-          {{#user.photoOption}}
-            <img src="{{prefix}}40x40{{suffix}}"/>
-          {{/user.photoOption}}
-          {{user.firstNameOption}}'s weekend
-          <div class="rating-summary" id="rating-{{rating.id}}">
-            <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')">7</div>
-          </div>
-        </h1>
-
-        <div class="weekend" id="weekend-{{rating.id}}">
-
-          {{>checkin-detail}}
-
-          <div class="rate" id="rate-{{rating.id}}">
-            <h4 class="rating-label">Your rating:</h4>
-            {{#ratingOptions}}
-              <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">{{toString}}</div>
-            {{/ratingOptions}}
-            <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" onclick="hideWeek('{{rating.id}}')">submit</div>
-            <div class="clear"></div>
-          </div>
-        </div>
-      {{/checkinsByDayByUser}}
+      You have {{toRate.length}} weekends to rate.
+      Get started!
     {{/needToRate}}
+    {{^needToRate}}
+      Here is what your friends did last weekend...
+    {{/needToRate}}
+    </div>
+
+    {{#checkinsByDayByUser}}
+      <h1 class="weekend-header">
+        {{#user.photoOption}}
+          <img src="{{prefix}}40x40{{suffix}}"/>
+        {{/user.photoOption}}
+        {{user.firstNameOption}}'s weekend
+        <div class="rating-summary" id="rating-{{rating.id}}">
+          <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')">7</div>
+        </div>
+      </h1>
+
+      <div class="weekend" id="weekend-{{rating.id}}">
+
+        {{>checkin-detail}}
+
+        <div class="rate" id="rate-{{rating.id}}" {{#rating.scoreOption}}data="{{toString}}"{{/rating.scoreOption}}>
+          <h4 class="rating-label">Your rating:</h4>
+          {{#ratingOptions}}
+            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">{{toString}}</div>
+          {{/ratingOptions}}
+          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" onclick="hideWeek('{{rating.id}}')">submit</div>
+          <div class="clear"></div>
+        </div>
+      </div>
+    {{/checkinsByDayByUser}}
 
     {{^needToRate}}
     <div class="myratings">
