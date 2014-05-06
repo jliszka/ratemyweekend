@@ -33,7 +33,9 @@ object View {
       val date = dateFmt.print(week.friday5pm.withDayOfWeek(dayOfWeek))
     }
 
-    def groupByDay(week: Week, checkins: Seq[CheckinJson]): Seq[WeekendDay] = {
+    def groupByDay(weekend: Weekend): Seq[WeekendDay] = {
+      val week = Week(weekend.week)
+      val checkins = weekend.checkins
       val dayMap = checkins
         .groupBy(c => Util.apiToDate(c.createdAt, user.tzOption).minusHours(4).getDayOfWeek)
       Seq(5, 6, 7).map(d => WeekendDay(week, d, dayMap.getOrElse(d, Seq.empty)))
@@ -47,21 +49,22 @@ object View {
     val checkinsByDayByUser = for {
       (rating, user, weekend) <- toRate
       week = Week(weekend.week)
-    } yield UserWeekendDay(rating, user, week, groupByDay(week, weekend.checkins))
+    } yield UserWeekendDay(rating, user, week, groupByDay(weekend))
     val ratingOptions = 1 to 10
 
     case class UserWeekendDay(rating: Rating, user: User, week: Week, checkinsByDay: Seq[WeekendDay])
-  }
-
-  class MyWeek(val user: User, weekend: Weekend) extends FixedView with ViewUtil with WeekendUtil {
-    val template = "checkins.html"
-    val checkinsByDay = groupByDay(Week(weekend.week), weekend.checkins)
   }
 
   class Leaderboard(val user: User, scores: Seq[(User, Double)]) extends FixedView {
     val template = "leaderboard.html"
     case class UserScore(user: User, score: String)
     val leaderboard = scores.sortBy(_._2).reverse.map{ case (u, s) => UserScore(u, "%.1f".format(s)) }
+  }
+
+  class Profile(val me: User, val user: User, weekends: Seq[Weekend]) extends FixedView with WeekendUtil {
+    val template = "profile.html"
+    case class CheckinsByDay(checkinsByDay: Seq[WeekendDay])
+    val checkinsByDayByWeek = weekends.map(weekend => CheckinsByDay(groupByDay(weekend)))
   }
 }
 

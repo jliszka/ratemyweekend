@@ -213,6 +213,13 @@ object Actions {
       .and(_.score exists true))
   }
 
+  def weekendsForFriend(me: User, user: User): Future[Seq[Weekend]] = future {
+    val friendIds = getFriendIds(me.id).toSet
+    if (friendIds(user.id)) {
+      db.fetch(Q(Weekend).where(_.uid eqs user.id).orderDesc(_.week))
+    } else Seq.empty
+  }
+
   def getFriendScores(user: User): Future[Seq[(User, Double)]] = future {
     val friends = user +: getFriends(user.id)
     val userMap = friends.map(u => u.id -> u).toMap

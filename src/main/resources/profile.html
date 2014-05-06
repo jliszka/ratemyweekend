@@ -1,0 +1,16 @@
+{{<chrome}}
+  {{$content}}
+
+  <h1 class="weekend-header">
+    {{#user.photoOption}}
+      <img src="{{prefix}}40x40{{suffix}}"/>
+    {{/user.photoOption}}
+    {{user.firstNameOption}}'s weekends
+  </h1>
+
+  {{#checkinsByDayByWeek}}
+    {{>checkin-detail}}
+  {{/checkinsByDayByWeek}}
+
+  {{/content}}
+{{/chrome}}

@@ -47,24 +47,30 @@ object App extends FinatraServer {
       render.status(200).plain("ok")
     }}
 
-    get("/myweek") { request =>
+    get("/profile") { request =>
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => redirect("/").toFuture
-        case Some(user) => future {
+        case Some(user) => redirect(s"/user/${user.id}").toFuture
+      })
+    }
 
-          val weekendOpt = {
-            db.fetchOne(Q(Weekend)
-              .where(_.uid eqs user.id)
-              .orderDesc(_.id))
-          }
-
-          weekendOpt match {
-            case None => redirect("/")
-            case Some(weekend) => {
-              val template = new View.MyWeek(user, weekend)
-              render.view(template)
+    get("/user/:id") { request =>
+      loggedInUser(request).flatMap(userOpt => userOpt match {
+        case None => redirect("/").toFuture
+        case Some(me) => {
+          val userId = UserId(request.routeParams.getOrElse("id", ???))
+          val userOptF = future(db.fetchOne(Q(User).where(_.id eqs userId)))
+          userOptF.flatMap(userOpt => userOpt match {
+            case None => redirect("/").toFuture
+            case Some(user) => {
+              val weekendsF = Actions.weekendsForFriend(me, user)
+              for {
+                weekends <- weekendsF
+                template = new View.Profile(me, user, weekends)
+                r <- render.view(template).toFuture
+              } yield r
             }
-          }
+          })
         }
       })
     }
