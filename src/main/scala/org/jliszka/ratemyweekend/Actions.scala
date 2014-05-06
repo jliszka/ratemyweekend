@@ -190,8 +190,7 @@ object Actions {
   def weekendsToRate(user: User): Future[Seq[(Rating, User, Weekend)]] = future {
     val ratings = db.fetch(Q(Rating)
       .where(_.rater eqs user.id)
-      //.and(_.score exists false)
-      )
+      .and(_.score exists false))
 
     val userMap = Util.idMap(User, ratings.map(_.ratee))
     val weekendMap = Util.idMap(Weekend, ratings.map(_.weekend))
