@@ -92,6 +92,15 @@ object Actions {
       .result)
   }
 
+  def getFriendIds(userId: UserId): Seq[UserId] = {
+    db.fetch(Q(Friend).where(_.self eqs userId).select(_.other)).flatten
+  }
+
+  def getFriends(userId: UserId): Seq[User] = {
+    val friendIds = getFriendIds(userId)
+    db.fetch(Q(User).where(_.id in friendIds))
+  }
+
   def syncCheckins(week: Week): Future[Unit] = {
 
     val doneUsersF: Future[Set[UserId]] = future {
@@ -117,15 +126,6 @@ object Actions {
       toSync = users.filterNot(u => doneUsers(u.id))
       _ <- syncUsers(users)
     } yield ()
-  }
-
-  def getFriendIds(userId: UserId): Seq[UserId] = {
-    db.fetch(Q(Friend).where(_.self eqs userId).select(_.other)).flatten
-  }
-
-  def getFriends(userId: UserId): Seq[User] = {
-    val friendIds = getFriendIds(userId)
-    db.fetch(Q(User).where(_.id in friendIds))
   }
 
   def syncCheckins(user: User, friendIds: Seq[UserId], week: Week): Future[WeekendId] = {
@@ -213,10 +213,21 @@ object Actions {
       .and(_.score exists true))
   }
 
-  def weekendsForFriend(me: User, user: User): Future[Seq[Weekend]] = future {
+  def computeScore(ratings: Seq[Rating]): Double = {
+    val scores = ratings.flatMap(_.scoreOption)
+    if (scores.isEmpty) 0.0
+    else scores.sum.toDouble / scores.size
+  }
+
+  def weekendsForFriend(me: User, user: User): Future[Seq[(Weekend, Double)]] = future {
     val friendIds = getFriendIds(me.id).toSet
     if (friendIds(user.id)) {
-      db.fetch(Q(Weekend).where(_.uid eqs user.id).orderDesc(_.week))
+      val weekends = db.fetch(Q(Weekend).where(_.uid eqs user.id).orderDesc(_.week))
+      val ratingsByWeekend = db.fetch(Q(Rating).where(_.weekend in weekends.map(_.id))).groupBy(_.weekend)
+      for {
+        weekend <- weekends
+        ratings <- ratingsByWeekend.get(weekend.id)
+      } yield (weekend, computeScore(ratings))
     } else Seq.empty
   }
 
@@ -224,12 +235,6 @@ object Actions {
     val friends = user +: getFriends(user.id)
     val userMap = friends.map(u => u.id -> u).toMap
     val week = Week.weekAgo(10)
-
-    def computeScore(ratings: Seq[Rating]): Double = {
-      val scores = ratings.flatMap(_.scoreOption)
-      if (scores.isEmpty) 0.0
-      else scores.sum.toDouble / scores.size
-    }
 
     val ratings = db.fetch(Q(Rating)
       .where(_.ratee in friends.map(_.id))

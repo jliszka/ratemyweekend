@@ -64,10 +64,12 @@ object View {
       .zipWithIndex.map{ case ((user, week, weekend, score), idx) => WeekendScore(idx+1, user, week, weekend, "%.1f".format(score)) }
   }
 
-  class Profile(val me: User, val user: User, weekends: Seq[Weekend]) extends FixedView with WeekendUtil {
+  class Profile(val me: User, val user: User, weekends: Seq[(Weekend, Double)]) extends FixedView with WeekendUtil {
     val template = "profile.html"
-    case class CheckinsByDay(weekend: Weekend, checkinsByDay: Seq[WeekendDay])
-    val checkinsByDayByWeek = weekends.map(weekend => CheckinsByDay(weekend, groupByDay(weekend)))
+    case class CheckinsByDay(weekend: Weekend, week: Week, score: Double, checkinsByDay: Seq[WeekendDay])
+    val checkinsByDayByWeek = for {
+      (weekend, score) <- weekends
+    } yield CheckinsByDay(weekend, Week(weekend.week), score, groupByDay(weekend))
   }
 }
 
