@@ -93,10 +93,10 @@ object App extends FinatraServer {
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => redirect("/").toFuture
         case Some(user) => {
-          val friendScoresF: Future[Seq[(User, Double)]] = Actions.getFriendScores(user)
+          val friendScoresF: Future[(UserScores, WeekendScores)] = Actions.getFriendScores(user)
           for {
-            friendScores <- friendScoresF
-            template = new View.Leaderboard(user, friendScores)
+            (userScores, weekendScores) <- friendScoresF
+            template = new View.Leaderboard(user, userScores, weekendScores)
             r <- render.view(template).toFuture
           } yield r
         }

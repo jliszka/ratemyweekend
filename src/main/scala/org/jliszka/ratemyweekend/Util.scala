@@ -11,6 +11,10 @@ import org.joda.time.format.DateTimeFormat
 
 object Util {
   val tz = DateTimeZone.forID("America/New_York")
+  val dateTimeFmt = DateTimeFormat.forPattern("EEEE, MMMM d, yyyy 'at' h:mm aa z")
+  val dateFmt = DateTimeFormat.forPattern("EEEE, MMMM d")
+  val timeFmt = DateTimeFormat.forPattern("h:mm aa")
+
   def dateToApi(d: DateTime) = d.getMillis / 1000
   def apiToDate(s: Long, userTz: Option[String]) = {
     val timeZone = userTz.map(DateTimeZone.forID).getOrElse(tz)
@@ -85,6 +89,7 @@ class Week(d: DateTime) {
   val friday5pm = d.withZone(Util.tz).minusHours(4).withDayOfWeek(1).minusDays(3).withTime(17, 0, 0, 0)
   val monday4am = friday5pm.plusDays(3).withTime(4, 0, 0, 0)
   val week = (friday5pm.getYear - 2014) * 100 + friday5pm.getWeekOfWeekyear
+  val dateStr = Util.dateFmt.print(friday5pm)
 }
 
 object Week {
@@ -100,3 +105,4 @@ object Week {
   }
   def weekAgo(n: Int) = new Week(DateTime.now.minusWeeks(n))
 }
+

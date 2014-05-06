@@ -3,19 +3,66 @@
 
   <h1>Leaderboard</h1>
 
-  <ol class="leaderboard">
-  {{#leaderboard}}
-    <li>
-      <a href="/user/{{user.id}}" class="unstyled">
-        {{#user.photoOption}}
-          <img src="{{prefix}}40x40{{suffix}}"/>
-        {{/user.photoOption}}
-        {{user.firstNameOption}}
-        <span class="score">{{score}}</span>
-      </a>
-    </li>
-  {{/leaderboard}}
-  </ol>
+  <div class="leaderboard">
+    <h2>Top Friends</h2>
+    <table cellpadding="5">
+    {{#userLeaderboard}}
+      <tr>
+        <td>
+          {{rank}}.
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="unstyled">
+            {{#user.photoOption}}
+              <img src="{{prefix}}40x40{{suffix}}"/>
+            {{/user.photoOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="unstyled">
+            {{user.firstNameOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="score unstyled">
+            {{score}}
+          </a>
+        </td>
+      </tr>
+    {{/userLeaderboard}}
+    </table>
+  </div>
 
+  <div class="leaderboard">
+    <h2>Top Weekends</h2>
+    <table cellpadding="5">
+    {{#weekendLeaderboard}}
+      <tr>
+        <td>
+          {{rank}}.
+        </td>
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
+            {{#user.photoOption}}
+              <img src="{{prefix}}40x40{{suffix}}"/>
+            {{/user.photoOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
+            {{user.firstNameOption}} on {{week.dateStr}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="score unstyled">
+            {{score}}
+          </a>
+        </td>
+      </tr>
+    {{/weekendLeaderboard}}
+    </table>
+  </div>
+
+  <div class="clear"></div>
   {{/content}}
 {{/chrome}}

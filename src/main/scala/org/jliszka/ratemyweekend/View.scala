@@ -13,24 +13,20 @@ object View {
     def apply(s: String) = f(s)
   }
 
-  private val dateTimeFmt = DateTimeFormat.forPattern("EEEE, MMMM d, yyyy 'at' h:mm aa z")
-  private val dateFmt = DateTimeFormat.forPattern("EEEE, MMMM d")
-  private val timeFmt = DateTimeFormat.forPattern("h:mm aa")
-
   class Index extends FixedView {
     val template = "index.html"
   }
 
   trait ViewUtil {
     val user: User
-    val friendlyTime = fn(s => timeFmt.print(Util.apiToDate(s.toLong, user.tzOption)))
+    val friendlyTime = fn(s => Util.timeFmt.print(Util.apiToDate(s.toLong, user.tzOption)))
   }
 
   trait WeekendUtil {
     val user: User
 
     case class WeekendDay(week: Week, dayOfWeek: Int, checkins: Seq[CheckinJson]) {
-      val date = dateFmt.print(week.friday5pm.withDayOfWeek(dayOfWeek))
+      val date = Util.dateFmt.print(week.friday5pm.withDayOfWeek(dayOfWeek))
     }
 
     def groupByDay(weekend: Weekend): Seq[WeekendDay] = {
@@ -55,16 +51,23 @@ object View {
     case class UserWeekendDay(rating: Rating, user: User, week: Week, checkinsByDay: Seq[WeekendDay])
   }
 
-  class Leaderboard(val user: User, scores: Seq[(User, Double)]) extends FixedView {
+  class Leaderboard(val user: User, userScores: UserScores, weekendScores: WeekendScores) extends FixedView {
     val template = "leaderboard.html"
-    case class UserScore(user: User, score: String)
-    val leaderboard = scores.sortBy(_._2).reverse.map{ case (u, s) => UserScore(u, "%.1f".format(s)) }
+    case class UserScore(rank: Int, user: User, score: String)
+    case class WeekendScore(rank: Int, user: User, week: Week, weekendId: WeekendId, score: String)
+
+    val userLeaderboard = userScores.scores
+      .sortBy(_._2).reverse
+      .zipWithIndex.map{ case ((user, score), idx) => UserScore(idx+1, user, "%.1f".format(score)) }
+    val weekendLeaderboard = weekendScores.scores
+      .sortBy(_._4).reverse.take(10)
+      .zipWithIndex.map{ case ((user, week, weekend, score), idx) => WeekendScore(idx+1, user, week, weekend, "%.1f".format(score)) }
   }
 
   class Profile(val me: User, val user: User, weekends: Seq[Weekend]) extends FixedView with WeekendUtil {
     val template = "profile.html"
-    case class CheckinsByDay(checkinsByDay: Seq[WeekendDay])
-    val checkinsByDayByWeek = weekends.map(weekend => CheckinsByDay(groupByDay(weekend)))
+    case class CheckinsByDay(weekend: Weekend, checkinsByDay: Seq[WeekendDay])
+    val checkinsByDayByWeek = weekends.map(weekend => CheckinsByDay(weekend, groupByDay(weekend)))
   }
 }
 

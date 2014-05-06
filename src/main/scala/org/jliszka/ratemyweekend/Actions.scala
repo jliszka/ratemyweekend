@@ -220,7 +220,7 @@ object Actions {
     } else Seq.empty
   }
 
-  def getFriendScores(user: User): Future[Seq[(User, Double)]] = future {
+  def getFriendScores(user: User): Future[(UserScores, WeekendScores)] = future {
     val friends = user +: getFriends(user.id)
     val userMap = friends.map(u => u.id -> u).toMap
     val week = Week.weekAgo(10)
@@ -235,13 +235,18 @@ object Actions {
       .where(_.ratee in friends.map(_.id))
       .and(_.week >= week.week)
       .and(_.score exists true))
-      .groupBy(_.ratee)
-      .toSeq
 
-    for {
-      (userId, ratings) <- ratings
+    val userScores = UserScores(for {
+      (userId, ratings) <- ratings.groupBy(_.ratee).toSeq
       user <- userMap.get(userId)
-    } yield (user, computeScore(ratings))
+    } yield (user, computeScore(ratings)))
+
+    val weekendScores = WeekendScores(for {
+      (weekendId, ratings) <- ratings.groupBy(_.weekend).toSeq
+      user <- userMap.get(ratings.head.ratee)
+    } yield (user, Week(ratings.head.week), weekendId, computeScore(ratings)))
+
+    (userScores, weekendScores)
   }
 
   def createSession(user: User): Future[Session] = future {
@@ -253,3 +258,6 @@ object Actions {
   }
 
 }
+
+case class UserScores(scores: Seq[(User, Double)])
+case class WeekendScores(scores: Seq[(User, Week, WeekendId, Double)])
