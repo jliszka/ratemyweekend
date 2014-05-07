@@ -41,6 +41,13 @@ object Batch {
     }
   }
 
+  def ensureIndexes() {
+    db.ensureIndexes(Q(Session))
+    db.ensureIndexes(Q(Weekend))
+    db.ensureIndexes(Q(Rating))
+    db.ensureIndexes(Q(Friend))
+  }
+
   def updateSchema(version: Int) {
     if (version >= 1) {
       fixWeekField()

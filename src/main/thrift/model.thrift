@@ -20,6 +20,8 @@ struct User {
   mongo_collection="users"
   mongo_identifier="ratemyweekend"
   primary_key="id"
+
+  index="id:asc"
 )
 
 struct Photo {
@@ -36,6 +38,9 @@ struct Session {
   mongo_identifier="ratemyweekend"
   primary_key="id"
   foreign_key="uid"
+
+  index="id:asc"
+  index="lastUsed:asc"
 )
 
 struct Weekend {
@@ -49,6 +54,10 @@ struct Weekend {
   mongo_identifier="ratemyweekend"
   primary_key="id"
   foreign_key="uid"
+
+  index="id:asc"
+  index="uid:asc,week:asc"
+  index="week:asc"
 )
 
 struct Rating {
@@ -65,6 +74,11 @@ struct Rating {
   foreign_key="rater"
   foreign_key="ratee"
   foreign_key="weekend"
+
+  index="id:asc"
+  index="rater:asc,week:asc"
+  index="ratee:asc,week:asc"
+  index="weekend:asc"
 )
 
 struct Friend {
@@ -77,4 +91,7 @@ struct Friend {
   primary_key="id"
   foreign_key="self"
   foreign_key="other"
+
+  index="id:asc"
+  index="self:asc,other:asc"
 )
