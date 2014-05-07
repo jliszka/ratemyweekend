@@ -16,9 +16,8 @@ object Util {
   val timeFmt = DateTimeFormat.forPattern("h:mm aa")
 
   def dateToApi(d: DateTime) = d.getMillis / 1000
-  def apiToDate(s: Long, userTz: Option[String]) = {
-    val timeZone = userTz.map(DateTimeZone.forID).getOrElse(tz)
-    new DateTime(s * 1000).withZone(timeZone)
+  def apiToDate(s: Long, offset: Int) = {
+    new DateTime(s * 1000).plusMinutes(offset)
   }
 
   def flatten2[A, B](xys: Seq[(Option[A], Option[B])]): Seq[(A, B)] = {

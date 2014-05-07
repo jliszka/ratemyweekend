@@ -19,12 +19,10 @@ object View {
 
   trait ViewUtil {
     val user: User
-    val friendlyTime = fn(s => Util.timeFmt.print(Util.apiToDate(s.toLong, user.tzOption)))
   }
 
   trait WeekendUtil {
     val user: User
-
 
     class CheckinProxy(override val underlying: CheckinJson) extends CheckinJsonProxy {
       val withFriends: Seq[UserJson] = {
@@ -32,6 +30,7 @@ object View {
         val overlaps: Seq[UserJson] = underlying.overlapsOption.map(os => os.items.flatMap(_.userOption)).getOrElse(Seq.empty)
         (mentioned ++ overlaps).groupBy(_.id).toSeq.map(_._2).flatMap(_.headOption)
       }
+      val timeStr = Util.timeFmt.print(Util.apiToDate(underlying.createdAt, underlying.timeZoneOffset))
     }
 
     case class WeekendDay(week: Week, dayOfWeek: Int, cs: Seq[CheckinJson]) {
@@ -43,7 +42,7 @@ object View {
       val week = Week(weekend.week)
       val checkins = weekend.checkins
       val dayMap = checkins
-        .groupBy(c => Util.apiToDate(c.createdAt, user.tzOption).minusHours(4).getDayOfWeek)
+        .groupBy(c => Util.apiToDate(c.createdAt, c.timeZoneOffset).minusHours(4).getDayOfWeek)
       Seq(5, 6, 7).map(d => WeekendDay(week, d, dayMap.getOrElse(d, Seq.empty)))
     }
   }
