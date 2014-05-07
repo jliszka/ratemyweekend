@@ -4,36 +4,6 @@
   <h1>Leaderboard</h1>
 
   <div class="leaderboard">
-    <h2>Top Friends</h2>
-    <table cellpadding="5">
-    {{#userLeaderboard}}
-      <tr>
-        <td class="rank">
-          {{rank}}.
-        </td>
-        <td>
-          <a href="/user/{{user.id}}" class="unstyled">
-            {{#user.photoOption}}
-              <img src="{{prefix}}40x40{{suffix}}"/>
-            {{/user.photoOption}}
-          </a>
-        </td>
-        <td>
-          <a href="/user/{{user.id}}" class="unstyled">
-            {{user.firstNameOption}}
-          </a>
-        </td>
-        <td>
-          <a href="/user/{{user.id}}" class="score unstyled">
-            {{score}}
-          </a>
-        </td>
-      </tr>
-    {{/userLeaderboard}}
-    </table>
-  </div>
-
-  <div class="leaderboard">
     <h2>Top Weekends</h2>
     <table cellpadding="5">
     {{#weekendLeaderboard}}
@@ -60,6 +30,36 @@
         </td>
       </tr>
     {{/weekendLeaderboard}}
+    </table>
+  </div>
+
+  <div class="leaderboard">
+    <h2>Top Friends</h2>
+    <table cellpadding="5">
+    {{#userLeaderboard}}
+      <tr>
+        <td class="rank">
+          {{rank}}.
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="unstyled">
+            {{#user.photoOption}}
+              <img src="{{prefix}}40x40{{suffix}}"/>
+            {{/user.photoOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="unstyled">
+            {{user.firstNameOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}" class="score unstyled">
+            {{score}}
+          </a>
+        </td>
+      </tr>
+    {{/userLeaderboard}}
     </table>
   </div>
 
