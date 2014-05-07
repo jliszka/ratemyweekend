@@ -66,10 +66,10 @@ object View {
 
   class Profile(val me: User, val user: User, weekends: Seq[(Weekend, Double)]) extends FixedView with WeekendUtil {
     val template = "profile.html"
-    case class CheckinsByDay(weekend: Weekend, week: Week, score: Double, checkinsByDay: Seq[WeekendDay])
+    case class CheckinsByDay(weekend: Weekend, week: Week, score: String, checkinsByDay: Seq[WeekendDay])
     val checkinsByDayByWeek = for {
       (weekend, score) <- weekends
-    } yield CheckinsByDay(weekend, Week(weekend.week), score, groupByDay(weekend))
+    } yield CheckinsByDay(weekend, Week(weekend.week), "%.1f".format(score), groupByDay(weekend))
   }
 }
 
