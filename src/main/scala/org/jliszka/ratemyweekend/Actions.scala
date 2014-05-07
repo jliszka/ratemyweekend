@@ -55,7 +55,7 @@ object Actions {
         .map(Json.parse(_, FriendsResponseWrapper).response.friends.items.map(f => UserId(f.id)))
     }
 
-    def saveFriends(friends: Seq[UserId]): Future[Unit] = future {
+    def saveFriends(friends: Seq[UserId]): Future[Seq[UserId]] = future {
       val dbFriendIds: Set[UserId] = getFriendIds(user.id).toSet
       val fsFriendIds: Set[UserId] = db.fetch(Q(User).where(_.id in friends).select(_.id)).flatten.toSet
 
@@ -71,25 +71,25 @@ object Actions {
       db.bulkDelete_!!(Q(Friend)
         .where(_.self in toRemove)
         .and(_.other eqs user.id))
+
+      fsFriendIds.toSeq
     }
 
     for {
       fsFriendIds <- fsFriendIdsF
-      _ <- saveFriends(fsFriendIds)
-    } yield fsFriendIds
+      dbFriendIds <- saveFriends(fsFriendIds)
+    } yield dbFriendIds
   }
 
   def makeFriends(u1: UserId, u2: UserId) {
-    db.insert(Friend.newBuilder
-      .id(FriendId(new ObjectId))
-      .self(u1)
-      .other(u2)
-      .result)
-    db.insert(Friend.newBuilder
-      .id(FriendId(new ObjectId))
-      .self(u2)
-      .other(u1)
-      .result)
+    db.upsertOne(Q(Friend)
+      .where(_.self eqs u1)
+      .and(_.other eqs u2)
+      .modify(_.other setTo u2))
+    db.upsertOne(Q(Friend)
+      .where(_.self eqs u2)
+      .and(_.other eqs u1)
+      .modify(_.other setTo u1))
   }
 
   def getFriendIds(userId: UserId): Seq[UserId] = {
