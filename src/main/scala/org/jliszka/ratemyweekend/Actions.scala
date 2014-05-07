@@ -221,7 +221,7 @@ object Actions {
 
   def weekendsForFriend(me: User, user: User): Future[Seq[(Weekend, Double)]] = future {
     val friendIds = getFriendIds(me.id).toSet
-    if (friendIds(user.id)) {
+    if (me.id == user.id || friendIds(user.id)) {
       val weekends = db.fetch(Q(Weekend).where(_.uid eqs user.id).orderDesc(_.week))
       val ratingsByWeekend = db.fetch(Q(Rating).where(_.weekend in weekends.map(_.id))).groupBy(_.weekend)
       for {
