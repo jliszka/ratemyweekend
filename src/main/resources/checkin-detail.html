@@ -38,24 +38,13 @@
         {{/items}}
       {{/photosOption}}
 
-      {{#withOption}}
+      {{#withFriends}}
       <div class="with">
           {{#photoOption}}
             <img src="{{prefix}}40x40{{suffix}}"/>
           {{/photoOption}}
       </div>
-      {{/withOption}}
-      {{#overlapsOption}}
-        {{#items}}
-          {{#userOption}}
-          <div class="with">
-              {{#photoOption}}
-                <img src="{{prefix}}40x40{{suffix}}"/>
-              {{/photoOption}}
-          </div>
-          {{/userOption}}
-        {{/items}}
-      {{/overlapsOption}}
+      {{/withFriends}}
 
       <div class="clear"></div>
     </div>

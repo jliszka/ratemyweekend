@@ -106,7 +106,7 @@ object Actions {
 
     val doneUsersF: Future[Set[UserId]] = future {
       db.fetch(Q(Weekend)
-        .and(_.week eqs week.week)
+        .where(_.week eqs week.week)
       .select(_.uid))
       .flatten.toSet
     }

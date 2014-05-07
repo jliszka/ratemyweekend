@@ -2,7 +2,7 @@ package org.jliszka.ratemyweekend
 
 import com.google.common.base.{Function => GFunction}
 import com.twitter.finatra._
-import org.jliszka.ratemyweekend.json.gen.CheckinJson
+import org.jliszka.ratemyweekend.json.gen.{CheckinJson, CheckinJsonProxy, UserJson}
 import org.jliszka.ratemyweekend.model.gen.{Rating, Session, User, Weekend}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{SessionId, UserId, WeekendId}
 import org.joda.time.{DateTime, DateTimeZone}
@@ -25,8 +25,18 @@ object View {
   trait WeekendUtil {
     val user: User
 
-    case class WeekendDay(week: Week, dayOfWeek: Int, checkins: Seq[CheckinJson]) {
+
+    class CheckinProxy(override val underlying: CheckinJson) extends CheckinJsonProxy {
+      val withFriends: Seq[UserJson] = {
+        val mentioned: Seq[UserJson] = underlying.withOption.getOrElse(Seq.empty)
+        val overlaps: Seq[UserJson] = underlying.overlapsOption.map(os => os.items.flatMap(_.userOption)).getOrElse(Seq.empty)
+        (mentioned ++ overlaps).groupBy(_.id).toSeq.map(_._2).flatMap(_.headOption)
+      }
+    }
+
+    case class WeekendDay(week: Week, dayOfWeek: Int, cs: Seq[CheckinJson]) {
       val date = Util.dateFmt.print(week.friday5pm.withDayOfWeek(dayOfWeek))
+      val checkins = cs.map(c => new CheckinProxy(c))
     }
 
     def groupByDay(weekend: Weekend): Seq[WeekendDay] = {
