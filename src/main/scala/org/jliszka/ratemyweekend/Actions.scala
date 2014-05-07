@@ -4,7 +4,8 @@ import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.twitter.util.Future
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.Http.{FS, FSApi}
-import org.jliszka.ratemyweekend.json.gen.{CheckinJson, CheckinsResponseWrapper, FriendsResponseWrapper, UserJson, UserResponseWrapper}
+import org.jliszka.ratemyweekend.json.gen.{CheckinJson, CheckinResponseWrapper, CheckinsResponseWrapper,
+  FriendsResponseWrapper, UserJson, UserResponseWrapper}
 import org.jliszka.ratemyweekend.model.gen.{Friend, Photo, Rating, Session, User, Weekend}
 import org.jliszka.ratemyweekend.model.gen.ModelTypedefs.{FriendId, SessionId, UserId, WeekendId}
 import org.jliszka.ratemyweekend.RogueImplicits._
@@ -114,7 +115,7 @@ object Actions {
       db.fetch(Q(User))
     }
 
-    def syncUsers(users: Seq[User]): Future[Seq[WeekendId]] = {
+    def syncUsers(users: Seq[User]): Future[Seq[Weekend]] = {
       future.groupedCollect(users, 5)(user => {
         val friendIds = getFriendIds(user.id)
         Actions.syncCheckins(user, friendIds, week)
@@ -128,7 +129,7 @@ object Actions {
     } yield ()
   }
 
-  def syncCheckins(user: User, friendIds: Seq[UserId], week: Week): Future[WeekendId] = {
+  def syncCheckins(user: User, friendIds: Seq[UserId], week: Week): Future[Weekend] = {
 
     val apiCheckinsF: Future[Seq[CheckinJson]] = FSApi(s"/v2/users/self/checkins")
       .params("oauth_token" -> user.accessToken, "v" -> "20140101")
@@ -139,12 +140,12 @@ object Actions {
       .getFuture()
       .map(Json.parse(_, CheckinsResponseWrapper).response.checkins.items)
 
-    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[WeekendId] = future {
+    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Weekend] = future {
       db.findAndUpsertOne(Q(Weekend)
         .where(_.uid eqs user.id)
         .and(_.week eqs week.week)
         .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
-      .get.id
+      .get
     }
 
     def createRatings(weekendId: WeekendId): Future[Unit] = future {
@@ -154,9 +155,33 @@ object Actions {
 
     for {
       apiCheckins <- apiCheckinsF
-      weekendId <- setCheckins(apiCheckins)
-      _ <- createRatings(weekendId)
-    } yield weekendId
+      weekend <- setCheckins(apiCheckins)
+      _ <- syncCheckinDetails(user, weekend)
+      _ <- createRatings(weekend.id)
+    } yield weekend
+  }
+
+  def syncCheckinDetails(user: User, weekend: Weekend): Future[Weekend] = {
+    def getCheckinDetails(checkin: CheckinJson): Future[CheckinJson] = {
+      FSApi(s"/v2/checkins/${checkin.id}")
+        .params("oauth_token" -> user.accessToken, "v" -> "20140101")
+        .getFuture()
+        .map(Json.parse(_, CheckinResponseWrapper).response.checkin)
+    }
+
+    val checkinDetailsF = future.groupedCollect(weekend.checkins, 5)(getCheckinDetails)
+
+    def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Weekend] = future {
+      db.findAndUpdateOne(Q(Weekend)
+        .where(_.id eqs weekend.id)
+        .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
+      .get
+    }
+
+    for {
+      checkinDetails <- checkinDetailsF
+      weekend <- setCheckins(checkinDetails)
+    } yield weekend
   }
 
   def createRating(ratee: UserId, rater: UserId, weekendId: WeekendId, week: Week): Future[Unit] = future {

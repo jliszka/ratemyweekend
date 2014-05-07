@@ -45,6 +45,17 @@
           {{/photoOption}}
       </div>
       {{/withOption}}
+      {{#overlapsOption}}
+        {{#items}}
+          {{#userOption}}
+          <div class="with">
+              {{#photoOption}}
+                <img src="{{prefix}}40x40{{suffix}}"/>
+              {{/photoOption}}
+          </div>
+          {{/userOption}}
+        {{/items}}
+      {{/overlapsOption}}
 
       <div class="clear"></div>
     </div>

@@ -48,6 +48,14 @@ struct CheckinsResponse {
   1: required CheckinsJson checkins
 }
 
+struct CheckinResponseWrapper {
+  1: required CheckinResponse response
+}
+
+struct CheckinResponse {
+  1: required CheckinJson checkin
+}
+
 struct CheckinsJson {
   1: required i32 count
   2: optional list<CheckinJson> items
@@ -62,6 +70,17 @@ struct CheckinJson {
   6: optional PhotosJson photos
   7: optional LikeGroupsJson likes
   8: optional CommentsJson comments
+  9: optional i32 timeZoneOffset
+  10: optional OverlapsJson overlaps
+}
+
+struct OverlapsJson {
+  1: required i32 count
+  2: optional list<OverlapJson> items
+}
+
+struct OverlapJson {
+  1: optional UserJson user
 }
 
 struct CommentsJson {

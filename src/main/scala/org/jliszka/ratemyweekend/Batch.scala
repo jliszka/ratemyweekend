@@ -32,6 +32,15 @@ object Batch {
     }
   }
 
+  def fixCheckinDetails() {
+    for {
+      u <- db.fetch(Q(User))
+      w <- db.fetch(Q(Weekend).where(_.uid eqs u.id))
+    } {
+      Actions.syncCheckinDetails(u, w)()
+    }
+  }
+
   def updateSchema(version: Int) {
     if (version >= 1) {
       fixWeekField()
