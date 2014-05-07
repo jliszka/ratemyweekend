@@ -49,6 +49,7 @@ struct Weekend {
   // 3: required i32 year (wire_name="y")
   4: required i32 week (wire_name="w")
   5: required list<json.CheckinJson> checkins (wire_name="c")
+  6: optional bool hasDetails (wire_name="d")
 } (
   mongo_collection="weekends"
   mongo_identifier="ratemyweekend"

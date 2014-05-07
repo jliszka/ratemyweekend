@@ -174,7 +174,8 @@ object Actions {
     def setCheckins(apiCheckins: Seq[CheckinJson]): Future[Weekend] = future {
       db.findAndUpdateOne(Q(Weekend)
         .where(_.id eqs weekend.id)
-        .findAndModify(_.checkins setTo apiCheckins), returnNew = true)
+        .findAndModify(_.checkins setTo apiCheckins)
+        .and(_.hasDetails setTo true), returnNew = true)
       .get
     }
 

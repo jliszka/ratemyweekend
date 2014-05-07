@@ -36,6 +36,7 @@ object Batch {
     for {
       u <- db.fetch(Q(User))
       w <- db.fetch(Q(Weekend).where(_.uid eqs u.id))
+      if !w.hasDetails
     } {
       Actions.syncCheckinDetails(u, w)()
     }

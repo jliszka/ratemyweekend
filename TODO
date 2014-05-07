@@ -1,9 +1,13 @@
 TODO
 
-- events
-- like and comment count
-- inline likes
-- link to 4sq checkin detail
-- ratings guidelines
+- submit button => confirmation
 - average rating after you rate
 - rate your own weekend
+- link to 4sq checkin detail
+- linkify facepiles
+- colorify ratings
+- like and comment count
+- inline likes
+- events
+- ratings guidelines
+- sync db
