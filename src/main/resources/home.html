@@ -60,8 +60,8 @@
         {{/user.photoOption}}
         {{user.firstNameOption}}'s weekend
           {{#needToRate}}
-          <div class="your-rating" id="rating-{{rating.id}}">
-            <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')" style="display:none"></div>
+          <div class="your-rating" id="rating-{{rating.id}}" style="display:none">
+            <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')"></div>
           </div>
           {{/needToRate}}
           {{^needToRate}}
@@ -80,7 +80,7 @@
         <div class="rate" id="rate-{{rating.id}}" {{#rating.scoreOption}}data="{{toString}}"{{/rating.scoreOption}}>
           <h4 class="rating-label">Your rating:</h4>
           {{#ratingOptions}}
-            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" {{#needToRate}}onclick="rate('{{rating.id}}', {{toString}})"{{/needToRate}}>
+            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">
               {{toString}}
             </div>
           {{/ratingOptions}}
