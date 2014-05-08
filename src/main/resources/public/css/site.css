@@ -92,7 +92,7 @@ h4.timestamp {
 }
 
 .rating-summary {
-  display: none;
+  display: inline-block;
 }
 
 .leaderboard {
@@ -116,8 +116,13 @@ h4.timestamp {
   background: #ddd;
 }
 
-.rating-summary .score {
+.your-rating .score {
   padding: 2px 12px;
+  cursor: pointer;
+}
+
+.rating-summary .score {
+  padding: 2px 4px;
   cursor: pointer;
 }
 

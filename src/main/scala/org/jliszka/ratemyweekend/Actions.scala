@@ -213,8 +213,8 @@ object Actions {
     } yield ()
   }
 
-  def weekendsToRate(user: User): Future[Seq[(Rating, User, Weekend)]] = future {
-    val ratings = {
+  def weekendsToRate(user: User): Future[Seq[WeekendRating]] = future {
+    val myRatings = {
       val allRatings = db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.score exists false))
       if (allRatings.isEmpty) {
         db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.week eqs Week.thisWeek.week))
@@ -223,14 +223,21 @@ object Actions {
       }
     }
 
-    val userMap = Util.idMap(User, ratings.map(_.ratee))
-    val weekendMap = Util.idMap(Weekend, ratings.map(_.weekend))
+    val userMap = Util.idMap(User, myRatings.map(_.ratee))
+    val weekendMap = Util.idMap(Weekend, myRatings.map(_.weekend))
+
+    val ratingsMap = {
+      val weekendIds = weekendMap.values.map(_.id)
+      db.fetch(Q(Rating).where(_.weekend in weekendIds))
+        .groupBy(_.weekend)
+    }
 
     for {
-      rating <- ratings
+      rating <- myRatings
       user <- userMap.get(rating.ratee)
       weekend <- weekendMap.get(rating.weekend)
-    } yield (rating, user, weekend)
+      otherRatings <- ratingsMap.get(weekend.id)
+    } yield WeekendRating(user, weekend, rating, computeScore(otherRatings))
   }
 
   def myRatings(user: User): Future[Seq[Rating]] = future {
@@ -292,3 +299,4 @@ object Actions {
 
 case class UserScores(scores: Seq[(User, Double)])
 case class WeekendScores(scores: Seq[(User, Week, WeekendId, Double)])
+case class WeekendRating(user: User, weekend: Weekend, rating: Rating, score: Double)
