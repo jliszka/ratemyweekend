@@ -106,7 +106,7 @@ object App extends FinatraServer {
     get("/logout") { request =>
       val c = new Cookie("sessionid", "")
       c.maxAge = Duration(-1, TimeUnit.DAYS)
-      redirect("/", permanent = true).cookie(c).toFuture
+      redirect("/", permanent = false).cookie(c).toFuture
     }
 
     error { request =>

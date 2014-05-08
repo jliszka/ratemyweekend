@@ -2,13 +2,12 @@ TODO
 
 launch
 - logged out home page
-- ff logout bug
-- rate your own weekend
 - link to 4sq checkin detail
 - linkify facepiles
 - colorify ratings
 
 later
+- rate your own weekend
 - submit button => confirmation
 - like and comment count
 - inline likes
