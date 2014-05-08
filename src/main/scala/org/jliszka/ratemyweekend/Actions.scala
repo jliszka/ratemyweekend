@@ -289,7 +289,7 @@ object Actions {
 class Score(val ratings: Seq[Rating]) {
   val scores = ratings.flatMap(_.scoreOption)
   val count = scores.size
-  val average = if (count > 0) scores.sum / count else 0.0
+  val average = if (count > 0) scores.sum.toDouble / count else 0.0
   val strOption = if (count > 0) Some("%.1f".format(average)) else None
   val str = strOption.getOrElse("-")
 }
