@@ -6,7 +6,7 @@
 .checkin {
   padding: 15px;
   padding-bottom: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
   background: #f0f0f0;
   width: 340px;
 }
@@ -41,6 +41,13 @@ h4.timestamp {
   margin-top: 10px;
   margin-right: 10px;
   float: left;
+}
+
+.details a {
+  float: right;
+  color: #aaa;
+  font-size: 10px;
+  margin-bottom: -5px;
 }
 
 .clear {

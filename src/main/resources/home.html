@@ -80,9 +80,13 @@
         <div class="rate" id="rate-{{rating.id}}" {{#rating.scoreOption}}data="{{toString}}"{{/rating.scoreOption}}>
           <h4 class="rating-label">Your rating:</h4>
           {{#ratingOptions}}
-            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" {{#needToRate}}onclick="rate('{{rating.id}}', {{toString}})"{{/needToRate}}>{{toString}}</div>
+            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" {{#needToRate}}onclick="rate('{{rating.id}}', {{toString}})"{{/needToRate}}>
+              {{toString}}
+            </div>
           {{/ratingOptions}}
-          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" {{#needToRate}}onclick="hideWeek('{{rating.id}}')"{{/needToRate}}>submit</div>
+          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" {{#needToRate}}onclick="hideWeek('{{rating.id}}')"{{/needToRate}}>
+            submit
+          </div>
           <div class="clear"></div>
         </div>
       </div>
