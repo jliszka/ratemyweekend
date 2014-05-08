@@ -80,5 +80,9 @@ object View {
       (user, weekend, score) <- weekends
     } yield WeekendsByUser(user, weekend, score, groupByDay(weekend))
   }
+
+  class UserNotFound(val userId: UserId) extends FixedView {
+    val template = "usernotfound.html"
+  }
 }
 

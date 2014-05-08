@@ -71,7 +71,7 @@ object App extends FinatraServer {
           val userId = UserId(request.routeParams.getOrElse("id", ???))
           val userOptF = future(db.fetchOne(Q(User).where(_.id eqs userId)))
           userOptF.flatMap(userOpt => userOpt match {
-            case None => redirect("/").toFuture
+            case None => render.view(new View.UserNotFound(userId)).toFuture
             case Some(user) => {
               for {
                 weekends <- Actions.weekendsForFriend(me, user)

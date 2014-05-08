@@ -7,6 +7,7 @@
 
   {{#checkinsByDayByUser}}
     <h2 class="weekend-summary">
+      <a href="/user/{{user.id}}" class="unstyled">
       {{#user.photoOption}}
         <img src="{{prefix}}40x40{{suffix}}"/>
       {{/user.photoOption}}
@@ -14,6 +15,7 @@
       {{#score.strOption}}
         <div class="score">{{toString}}</div>
       {{/score.strOption}}
+      </a>
     </h2>
     {{>checkin-detail}}
   {{/checkinsByDayByUser}}
