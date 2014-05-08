@@ -23,13 +23,23 @@ object App extends FinatraServer {
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => render.view(new View.Index).toFuture
         case Some(user) => {
-          val toRateF = Actions.weekendsToRate(user)
-          val myRatingsF = Actions.myRatings(user)
-          for {
-            (toRate, myRatings) <- future.join(toRateF, myRatingsF)
-            template = new View.Home(user, toRate, myRatings)
-            r <- render.view(template).toFuture
-          } yield r
+          Actions.hasWeekendsToRate(user).flatMap(needsToRate => {
+            if (needsToRate) {
+              // Render weekends to rate
+              for {
+                toRate <- Actions.getWeekendsToRate(user)
+                template = new View.Rate(user, toRate)
+                r <- render.view(template).toFuture
+              } yield r
+            } else {
+              // Render leaderboard
+              for {
+                (userScores, weekendScores) <- Actions.getFriendScores(user)
+                template = new View.Leaderboard(user, userScores, weekendScores)
+                r <- render.view(template).toFuture
+              } yield r
+            }
+          })
         }
       })
     }
@@ -63,9 +73,8 @@ object App extends FinatraServer {
           userOptF.flatMap(userOpt => userOpt match {
             case None => redirect("/").toFuture
             case Some(user) => {
-              val weekendsF = Actions.weekendsForFriend(me, user)
               for {
-                weekends <- weekendsF
+                weekends <- Actions.weekendsForFriend(me, user)
                 template = new View.Profile(me, user, weekends)
                 r <- render.view(template).toFuture
               } yield r
@@ -89,14 +98,13 @@ object App extends FinatraServer {
       })
     }
 
-    get("/leaderboard") { request =>
+    get("/thisweek") { request =>
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => redirect("/").toFuture
         case Some(user) => {
-          val friendScoresF: Future[(UserScores, WeekendScores)] = Actions.getFriendScores(user)
           for {
-            (userScores, weekendScores) <- friendScoresF
-            template = new View.Leaderboard(user, userScores, weekendScores)
+            weekends <- Actions.weekendForFriends(user, Week.thisWeek)
+            template = new View.ThisWeek(user, Week.thisWeek, weekends)
             r <- render.view(template).toFuture
           } yield r
         }

@@ -213,46 +213,23 @@ object Actions {
     } yield ()
   }
 
-  def weekendsToRate(user: User): Future[Seq[WeekendRating]] = future {
-    val myRatings = {
-      val allRatings = db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.score exists false))
-      if (allRatings.isEmpty) {
-        db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.week eqs Week.thisWeek.week))
-      } else {
-        allRatings
-      }
-    }
+  def hasWeekendsToRate(user: User): Future[Boolean] = future {
+    db.count(Q(Rating).where(_.rater eqs user.id).and(_.score exists false)) > 0
+  }
 
-    val userMap = Util.idMap(User, myRatings.map(_.ratee))
-    val weekendMap = Util.idMap(Weekend, myRatings.map(_.weekend))
-
-    val ratingsMap = {
-      val weekendIds = weekendMap.values.map(_.id)
-      db.fetch(Q(Rating).where(_.weekend in weekendIds))
-        .groupBy(_.weekend)
-    }
+  def getWeekendsToRate(user: User): Future[Seq[WeekendRating]] = future {
+    val ratings = db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.score exists false))
+    val userMap = Util.idMap(User, ratings.map(_.ratee))
+    val weekendMap = Util.idMap(Weekend, ratings.map(_.weekend))
 
     for {
-      rating <- myRatings
+      rating <- ratings
       user <- userMap.get(rating.ratee)
       weekend <- weekendMap.get(rating.weekend)
-      otherRatings <- ratingsMap.get(weekend.id)
-    } yield WeekendRating(user, weekend, rating, computeScore(otherRatings))
+    } yield WeekendRating(user, weekend, rating)
   }
 
-  def myRatings(user: User): Future[Seq[Rating]] = future {
-    db.fetch(Q(Rating)
-      .where(_.ratee eqs user.id)
-      .and(_.score exists true))
-  }
-
-  def computeScore(ratings: Seq[Rating]): Double = {
-    val scores = ratings.flatMap(_.scoreOption)
-    if (scores.isEmpty) 0.0
-    else scores.sum.toDouble / scores.size
-  }
-
-  def weekendsForFriend(me: User, user: User): Future[Seq[(Weekend, Double)]] = future {
+  def weekendsForFriend(me: User, user: User): Future[Seq[(Weekend, Score)]] = future {
     val friendIds = getFriendIds(me.id).toSet
     if (me.id == user.id || friendIds(user.id)) {
       val weekends = db.fetch(Q(Weekend).where(_.uid eqs user.id).orderDesc(_.week))
@@ -260,8 +237,20 @@ object Actions {
       for {
         weekend <- weekends
         ratings <- ratingsByWeekend.get(weekend.id)
-      } yield (weekend, computeScore(ratings))
+      } yield (weekend, new Score(ratings))
     } else Seq.empty
+  }
+
+  def weekendForFriends(user: User, week: Week): Future[Seq[(User, Weekend, Score)]] = future {
+    val friends = getFriends(user.id)
+    val weekends = db.fetch(Q(Weekend).where(_.uid in friends.map(_.id)).and(_.week eqs week.week))
+    val ratingsByWeekend = db.fetch(Q(Rating).where(_.weekend in weekends.map(_.id))).groupBy(_.weekend)
+    val userMap = friends.map(f => f.id -> f).toMap
+    for {
+      weekend <- weekends
+      user <- userMap.get(weekend.uid)
+      ratings <- ratingsByWeekend.get(weekend.id)
+    } yield (user, weekend, new Score(ratings))
   }
 
   def getFriendScores(user: User): Future[(UserScores, WeekendScores)] = future {
@@ -277,12 +266,12 @@ object Actions {
     val userScores = UserScores(for {
       (userId, ratings) <- ratings.groupBy(_.ratee).toSeq
       user <- userMap.get(userId)
-    } yield (user, computeScore(ratings)))
+    } yield (user, new Score(ratings)))
 
     val weekendScores = WeekendScores(for {
       (weekendId, ratings) <- ratings.groupBy(_.weekend).toSeq
       user <- userMap.get(ratings.head.ratee)
-    } yield (user, Week(ratings.head.week), weekendId, computeScore(ratings)))
+    } yield (user, Week(ratings.head.week), weekendId, new Score(ratings)))
 
     (userScores, weekendScores)
   }
@@ -297,6 +286,14 @@ object Actions {
 
 }
 
-case class UserScores(scores: Seq[(User, Double)])
-case class WeekendScores(scores: Seq[(User, Week, WeekendId, Double)])
-case class WeekendRating(user: User, weekend: Weekend, rating: Rating, score: Double)
+class Score(val ratings: Seq[Rating]) {
+  val scores = ratings.flatMap(_.scoreOption)
+  val count = scores.size
+  val average = if (count > 0) scores.sum / count else 0.0
+  val strOption = if (count > 0) Some("%.1f".format(average)) else None
+  val str = strOption.getOrElse("-")
+}
+
+case class UserScores(scores: Seq[(User, Score)])
+case class WeekendScores(scores: Seq[(User, Week, WeekendId, Score)])
+case class WeekendRating(user: User, weekend: Weekend, rating: Rating)

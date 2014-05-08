@@ -1,11 +1,26 @@
 {{<chrome}}
 
   {{$js}}
+    var ratings = {
+      {{#checkinsByDayByUser}}
+      '{{rating.id}}': false,
+      {{/checkinsByDayByUser}}
+      'foo': true
+    };
     function rate(rid, score) {
       $('#rate-'+rid+' .rating-option').removeClass('selected');
       $('#rate-'+rid+'-'+score).addClass('selected');
       $('#rate-'+rid+'-submit').css('display', 'inline-block');
       $('#score-'+rid).text(score);
+      ratings[rid] = true;
+      var done = true;
+      $.each(ratings, function(idx, value) {
+        if (!value) done = false;
+      });
+      if (done) {
+        $("#done").show();
+      }
+
       $.ajax('/rate/'+rid, { type: 'POST', data: { score: score }});
     }
 
@@ -38,19 +53,8 @@
     {{/user}}
 
     <div class="torate">
-    {{#needToRate}}
       You have {{toRate.length}} weekends to rate.
       Get started!
-    {{/needToRate}}
-    {{^needToRate}}
-      <p>
-        You've rated everything there is to rate!
-        Here's what your friends were up to last weekend...
-      </p>
-      <p>
-        Also be sure to check out your standings on the <a href="/leaderboard">leaderboard</a>!
-      </p>
-    {{/needToRate}}
     </div>
 
     {{#checkinsByDayByUser}}
@@ -59,18 +63,9 @@
           <img src="{{prefix}}40x40{{suffix}}"/>
         {{/user.photoOption}}
         {{user.firstNameOption}}'s weekend
-          {{#needToRate}}
-          <div class="your-rating" id="rating-{{rating.id}}" style="display:none">
-            <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')"></div>
-          </div>
-          {{/needToRate}}
-          {{^needToRate}}
-          <div class="rating-summary" id="rating-{{rating.id}}">
-            <div class="score" id="score-{{rating.id}}">
-              {{score}}
-            </div>
-          </div>
-          {{/needToRate}}
+        <div class="your-rating" id="rating-{{rating.id}}" style="display:none">
+          <div class="score" id="score-{{rating.id}}" onclick="showWeek('{{rating.id}}')"></div>
+        </div>
       </h1>
 
       <div class="weekend" id="weekend-{{rating.id}}">
@@ -84,7 +79,7 @@
               {{toString}}
             </div>
           {{/ratingOptions}}
-          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" {{#needToRate}}onclick="hideWeek('{{rating.id}}')"{{/needToRate}}>
+          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" onclick="hideWeek('{{rating.id}}')">
             submit
           </div>
           <div class="clear"></div>
@@ -92,10 +87,9 @@
       </div>
     {{/checkinsByDayByUser}}
 
-    {{^needToRate}}
-    <div class="myratings">
+    <div id="done" class="done">
+      You've rated everything there is to rate! Now go check out the <a href="/">leaderboard</a>.
     </div>
-    {{/needToRate}}
 
   {{/content}}
 {{/chrome}}

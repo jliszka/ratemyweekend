@@ -140,6 +140,12 @@ h4.timestamp {
   padding: 6px;
 }
 
+#done {
+  display: none;
+  font-size: 18px;
+  margin-top: 30px;
+}
+
 a.unstyled,
 a.unstyled:hover,
 a.unstyled:visited {

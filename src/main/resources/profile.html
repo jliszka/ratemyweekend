@@ -12,7 +12,9 @@
     <a name="weekend-{{weekend.id}}"></a>
     <h2 class="weekend-summary">
       Weekend of {{week.dateStr}}
-      <div class="score">{{score}}</div>
+      {{#score.strOption}}
+        <div class="score">{{toString}}</div>
+      {{/score.strOption}}
     </h2>
     {{>checkin-detail}}
   {{/checkinsByDayByWeek}}

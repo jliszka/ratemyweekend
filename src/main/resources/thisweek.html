@@ -1,0 +1,22 @@
+{{<chrome}}
+  {{$content}}
+
+  <h1>This Week</h1>
+
+  Here's what your friends were up to this weekend...
+
+  {{#checkinsByDayByUser}}
+    <h2 class="weekend-summary">
+      {{#user.photoOption}}
+        <img src="{{prefix}}40x40{{suffix}}"/>
+      {{/user.photoOption}}
+      {{user.firstNameOption}}'s weekend
+      {{#score.strOption}}
+        <div class="score">{{toString}}</div>
+      {{/score.strOption}}
+    </h2>
+    {{>checkin-detail}}
+  {{/checkinsByDayByUser}}
+
+  {{/content}}
+{{/chrome}}

@@ -17,13 +17,7 @@ object View {
     val template = "index.html"
   }
 
-  trait ViewUtil {
-    val user: User
-  }
-
   trait WeekendUtil {
-    val user: User
-
     class CheckinProxy(override val underlying: CheckinJson) extends CheckinJsonProxy {
       val withFriends: Seq[UserJson] = {
         val mentioned: Seq[UserJson] = underlying.withOption.getOrElse(Seq.empty)
@@ -47,38 +41,44 @@ object View {
     }
   }
 
-  class Home(val user: User, val toRate: Seq[WeekendRating], val myRatings: Seq[Rating])
-      extends FixedView with ViewUtil with WeekendUtil {
-    val template = "home.html"
-    val needToRate = toRate.exists(_.rating.scoreOption.isEmpty)
+  class Rate(val user: User, val toRate: Seq[WeekendRating])
+      extends FixedView with WeekendUtil {
+    val template = "rate.html"
     val checkinsByDayByUser = for {
       r <- toRate
-      week = Week(r.weekend.week)
-    } yield UserWeekendDay(r.rating, "%.1f".format(r.score), r.user, week, groupByDay(r.weekend))
+    } yield UserWeekendDay(r.rating, r.user, Week(r.weekend.week), groupByDay(r.weekend))
     val ratingOptions = 1 to 10
 
-    case class UserWeekendDay(rating: Rating, score: String, user: User, week: Week, checkinsByDay: Seq[WeekendDay])
+    case class UserWeekendDay(rating: Rating, user: User, week: Week, checkinsByDay: Seq[WeekendDay])
   }
 
   class Leaderboard(val user: User, userScores: UserScores, weekendScores: WeekendScores) extends FixedView {
     val template = "leaderboard.html"
-    case class UserScore(rank: Int, user: User, score: String)
-    case class WeekendScore(rank: Int, user: User, week: Week, weekendId: WeekendId, score: String)
+    case class UserScore(rank: Int, user: User, score: Score)
+    case class WeekendScore(rank: Int, user: User, week: Week, weekendId: WeekendId, score: Score)
 
     val userLeaderboard = userScores.scores
-      .sortBy(_._2).reverse
-      .zipWithIndex.map{ case ((user, score), idx) => UserScore(idx+1, user, "%.1f".format(score)) }
+      .sortBy(_._2.average).reverse
+      .zipWithIndex.map{ case ((user, score), idx) => UserScore(idx+1, user, score) }
     val weekendLeaderboard = weekendScores.scores
-      .sortBy(_._4).reverse.take(10)
-      .zipWithIndex.map{ case ((user, week, weekend, score), idx) => WeekendScore(idx+1, user, week, weekend, "%.1f".format(score)) }
+      .sortBy(_._4.average).reverse.take(10)
+      .zipWithIndex.map{ case ((user, week, weekend, score), idx) => WeekendScore(idx+1, user, week, weekend, score) }
   }
 
-  class Profile(val me: User, val user: User, weekends: Seq[(Weekend, Double)]) extends FixedView with WeekendUtil {
+  class Profile(val me: User, val user: User, weekends: Seq[(Weekend, Score)]) extends FixedView with WeekendUtil {
     val template = "profile.html"
-    case class CheckinsByDay(weekend: Weekend, week: Week, score: String, checkinsByDay: Seq[WeekendDay])
+    case class CheckinsByDay(weekend: Weekend, week: Week, score: Score, checkinsByDay: Seq[WeekendDay])
     val checkinsByDayByWeek = for {
       (weekend, score) <- weekends
-    } yield CheckinsByDay(weekend, Week(weekend.week), "%.1f".format(score), groupByDay(weekend))
+    } yield CheckinsByDay(weekend, Week(weekend.week), score, groupByDay(weekend))
+  }
+
+  class ThisWeek(val user: User, val week: Week, weekends: Seq[(User, Weekend, Score)]) extends FixedView with WeekendUtil {
+    val template = "thisweek.html"
+    case class WeekendsByUser(user: User, weekend: Weekend, score: Score, checkinsByDay: Seq[WeekendDay])
+    val checkinsByDayByUser = for {
+      (user, weekend, score) <- weekends
+    } yield WeekendsByUser(user, weekend, score, groupByDay(weekend))
   }
 }
 
