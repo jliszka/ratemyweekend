@@ -49,12 +49,31 @@
       {{/withFriends}}
 
       <div class="clear"></div>
+      <div class="likes">&nbsp;
+      {{#likesOption}}
+        {{#count}}
+          <span class="count">{{toString}}</span>
+          <span class="icon">❤</span>
+        {{/count}}
+      {{/likesOption}}
+      </div>
+
+      {{#commentsOption}}
+        {{#count}}
+        <div class="comments">
+          <span class="count">{{toString}}</span>
+          <span class="icon">💬</span>
+        </div>
+        {{/count}}
+      {{/commentsOption}}
+      <div class="clear"></div>
 
     </div>
 
     <div class="details">
       <a target="_blank" href="https://foursquare.com/checkin/{{id}}">details</a>
     </div>
+
     <div class="clear"></div>
     {{/checkins}}
     {{^checkins}}

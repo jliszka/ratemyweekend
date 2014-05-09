@@ -9,7 +9,7 @@ p {
 
 .checkin {
   padding: 15px;
-  padding-bottom: 15px;
+  padding-bottom: 0px;
   margin-bottom: 0px;
   background: #f0f0f0;
   width: 340px;
@@ -47,11 +47,36 @@ h4.timestamp {
   float: left;
 }
 
-.details a {
+.details {
   float: right;
   color: #ccc;
   font-size: 10px;
   margin-bottom: -5px;
+}
+
+.details a {
+  color: #ccc;
+}
+
+.likes {
+  font-size: 12px;
+  float: right;
+}
+
+.likes .icon {
+  font-family: 'Apple Color Emoji';
+  font-size: 10px;
+}
+
+.comments {
+  font-size: 12px;
+  float: right;
+  margin-right: 10px;
+}
+
+.comments .icon {
+  font-family: 'Apple Color Emoji';
+  font-size: 10px;
 }
 
 .clear {
