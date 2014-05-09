@@ -1,6 +1,7 @@
 package org.jliszka.ratemyweekend
 
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
+import com.twitter.finatra._
 import com.twitter.util.Future
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.model.gen.{Friend, Photo, Rating, Session, User, Weekend}
@@ -9,18 +10,11 @@ import org.jliszka.ratemyweekend.RogueImplicits._
 import org.joda.time.DateTime
 
 object Batch {
-  def resetDB() {
-    db.bulkDelete_!!(Q(Rating))
-    db.bulkDelete_!!(Q(Weekend))
-    db.bulkDelete_!!(Q(Friend))
-    val uid = UserId("364701")
-    Actions.makeFriends(uid, uid)
-    val u = db.fetchOne(Q(User).where(_.id eqs uid)).get
-    (3 to 0 by -1).foreach(n => {
-      val week = Week.weekAgo(n)
-      Actions.syncCheckins(u, List(u.id), week)()
-      Actions.collectRatings(u, List(u.id), week)()
-    })
+
+  def resetRatings() {
+    if ("development".equals(config.env())) {
+      db.updateMulti(Q(Rating).where(_.rater eqs UserId("364701")).modify(_.score unset))
+    }
   }
 
   def fixWeekField() {
@@ -50,8 +44,10 @@ object Batch {
   }
 
   def updateSchema(version: Int) {
-    if (version >= 1) {
-      fixWeekField()
+    version match {
+      case 1 => fixWeekField()
+      case 2 => fixCheckinDetails()
+      case 3 => ensureIndexes()
     }
   }
 }

@@ -1,13 +1,13 @@
 TODO
 
 launch
-- best weekend of the month/year
 - colorify ratings
+- events
 
 later
+- best weekend of the month/year
 - rate your own weekend
 - submit button => confirmation
 - inline likes
-- events
 - ratings guidelines
-- sync db
+- normalize scores

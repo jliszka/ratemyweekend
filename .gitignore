@@ -9,6 +9,7 @@ lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+mongohq.dmp/
 
 # Scala-IDE specific
 .scala_dependencies
