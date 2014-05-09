@@ -48,14 +48,28 @@
       </div>
       {{/withFriends}}
 
-      <div class="likes">
+
       {{#likesOption}}
         {{#count}}
-          <span class="count">{{toString}}</span>
-          <span class="icon">❤</span>
+        <div class="likes-and-comments-spacer">&nbsp;</div>
         {{/count}}
       {{/likesOption}}
-      </div>
+      {{#commentsOption}}
+        {{#count}}
+        <div class="likes-and-comments-spacer">&nbsp;</div>
+        {{/count}}
+      {{/commentsOption}}
+
+      <div class="likes-and-comments">
+
+      {{#likesOption}}
+        {{#count}}
+        <div class="likes">
+          <span class="count">{{toString}}</span>
+          <span class="icon">❤</span>
+        </div>
+        {{/count}}
+      {{/likesOption}}
 
       {{#commentsOption}}
         {{#count}}
@@ -65,6 +79,9 @@
         </div>
         {{/count}}
       {{/commentsOption}}
+
+      </div>
+
       <div class="clear"></div>
 
     </div>

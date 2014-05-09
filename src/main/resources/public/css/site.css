@@ -13,6 +13,7 @@ p {
   margin-bottom: 0px;
   background: #f0f0f0;
   width: 340px;
+  position: relative;
 }
 
 .checkin .category {
@@ -59,11 +60,18 @@ h4.timestamp {
   color: #ccc;
 }
 
-.likes {
-  position: relative;
-  top: 6px;
-  font-size: 12px;
+.likes-and-comments-spacer {
   float: right;
+}
+
+.likes-and-comments {
+  position: absolute;
+  bottom: 12px;
+  right: 15px;
+}
+
+.likes {
+  font-size: 12px;
 }
 
 .likes .icon {
@@ -75,7 +83,6 @@ h4.timestamp {
   position: relative;
   top: 6px;
   font-size: 12px;
-  float: right;
   margin-right: 2px;
 }
 
