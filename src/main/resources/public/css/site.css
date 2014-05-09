@@ -35,6 +35,11 @@ p {
   margin-top: 3px;
 }
 
+.checkin .event .name {
+  font-size: 12px;
+  color: #666;
+}
+
 .checkin .photo {
   margin-top: 15px;
 }

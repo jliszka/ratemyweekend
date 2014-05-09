@@ -72,6 +72,11 @@ struct CheckinJson {
   8: optional CommentsJson comments
   9: optional i32 timeZoneOffset
   10: optional OverlapsJson overlaps
+  11: optional EventJson event
+}
+
+struct EventJson {
+  1: optional string name
 }
 
 struct OverlapsJson {

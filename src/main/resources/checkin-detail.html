@@ -29,6 +29,15 @@
         {{#shoutOption}}"{{toString}}"{{/shoutOption}}
       </div>
 
+      {{#eventOption}}
+      <div class="event">
+        {{#nameOption}}
+          <span class="icon">📅</span>
+          <span class="name">{{toString}}</span>
+        {{/nameOption}}
+      </div>
+      {{/eventOption}}
+
       {{#photosOption}}
         <div class="clear"></div>
         {{#items}}
