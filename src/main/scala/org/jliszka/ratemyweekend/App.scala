@@ -52,10 +52,17 @@ object App extends FinatraServer {
       } yield r
     }
 
-    get("/schema") { request => future {
-      Batch.updateSchema(request.params.getOrElse("v", ???).toInt)
-      render.status(200).plain("ok")
-    }}
+    get("/schema") { request =>
+      loggedInUser(request).flatMap(userOpt => userOpt match {
+        case None => render.status(400).plain("not logged in").toFuture
+        case Some(user) => future {
+          if (user.id == UserId("364701")) {
+            Batch.updateSchema(request.params.getOrElse("v", ???).toInt)
+          }
+          render.status(200).plain("ok")
+        }
+      })
+    }
 
     get("/profile") { request =>
       loggedInUser(request).flatMap(userOpt => userOpt match {
