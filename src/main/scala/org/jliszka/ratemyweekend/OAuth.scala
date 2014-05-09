@@ -20,7 +20,7 @@ class OAuthController extends Controller {
     if (!"development".equals(config.env()))
       "http://ratemyweekend.herokuapp.com/oauth_callback"
     else
-      "http://localhost.com:7070/oauth_callback"
+      "http://thedistantfuture.local:7070/oauth_callback"
   }
 
   get("/authenticate") { request =>

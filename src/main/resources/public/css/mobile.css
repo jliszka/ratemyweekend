@@ -1,0 +1,66 @@
+p {
+  width: 100%;
+  font-size: 14px;
+}
+
+.leaderboard {
+  margin-right: 0px;
+}
+
+.leaderboard td {
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+h4 {
+  font-size: 14px;
+}
+
+.checkin {
+  width: 90%
+}
+
+.checkin .photo img {
+  width: 100%;
+}
+
+.day {
+  width: 110%;
+  margin-right: 0px;
+}
+
+.details {
+  margin-right: 10%;
+}
+
+.rate {
+  padding-left: 0px;
+}
+
+.rating-label {
+  display: block;
+}
+
+.rating-option {
+  width: 8%;
+  margin: 0.5%;
+}
+
+.rating-option-submit {
+  width: 25%;
+}
+
+.your-rating .score {
+  padding: 2px 6px;
