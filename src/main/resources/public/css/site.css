@@ -66,27 +66,12 @@ h4.timestamp {
 
 .likes-and-comments {
   position: absolute;
-  bottom: 12px;
+  bottom: 10px;
   right: 15px;
-}
-
-.likes {
   font-size: 12px;
 }
 
-.likes .icon {
-  font-family: 'Apple Color Emoji';
-  font-size: 10px;
-}
-
-.comments {
-  position: relative;
-  top: 6px;
-  font-size: 12px;
-  margin-right: 2px;
-}
-
-.comments .icon {
+.icon {
   font-family: 'Apple Color Emoji';
   font-size: 10px;
 }

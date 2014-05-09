@@ -49,38 +49,26 @@
       {{/withFriends}}
 
 
-      {{#likesOption}}
-        {{#count}}
-        <div class="likes-and-comments-spacer">&nbsp;</div>
-        {{/count}}
-      {{/likesOption}}
-      {{#commentsOption}}
-        {{#count}}
-        <div class="likes-and-comments-spacer">&nbsp;</div>
-        {{/count}}
-      {{/commentsOption}}
+      {{#hasLikesOrComments}}
+      <div class="likes-and-comments-spacer">&nbsp;</div>
+      {{/hasLikesOrComments}}
 
+      {{#hasLikesOrComments}}
       <div class="likes-and-comments">
-
-      {{#likesOption}}
-        {{#count}}
-        <div class="likes">
-          <span class="count">{{toString}}</span>
-          <span class="icon">❤</span>
-        </div>
-        {{/count}}
-      {{/likesOption}}
-
       {{#commentsOption}}
         {{#count}}
-        <div class="comments">
           <span class="count">{{toString}}</span>
           <span class="icon">💬</span>
-        </div>
         {{/count}}
       {{/commentsOption}}
-
+      {{#likesOption}}
+        {{#count}}
+          <span class="count">{{toString}}</span>
+          <span class="icon">❤</span>
+        {{/count}}
+      {{/likesOption}}
       </div>
+      {{/hasLikesOrComments}}
 
       <div class="clear"></div>
 

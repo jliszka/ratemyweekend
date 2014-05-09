@@ -25,6 +25,7 @@ object View {
         (mentioned ++ overlaps).groupBy(_.id).toSeq.map(_._2).flatMap(_.headOption)
       }
       val timeStr = Util.timeFmt.print(Util.apiToDate(underlying.createdAt, underlying.timeZoneOffset))
+      val hasLikesOrComments = underlying.likesOption.exists(_.count > 0) || underlying.commentsOption.exists(_.count > 0)
     }
 
     case class WeekendDay(week: Week, dayOfWeek: Int, cs: Seq[CheckinJson]) {
