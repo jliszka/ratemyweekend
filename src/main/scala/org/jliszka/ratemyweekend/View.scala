@@ -58,7 +58,7 @@ object View {
     case class WeekendScore(rank: Int, user: User, week: Week, weekendId: WeekendId, score: Score)
 
     val userLeaderboard = userScores.scores
-      .sortBy(_._2.average).reverse
+      .sortBy(_._2.average).reverse.take(10)
       .zipWithIndex.map{ case ((user, score), idx) => UserScore(idx+1, user, score) }
     val weekendLeaderboard = weekendScores.scores
       .sortBy(_._4.average).reverse.take(10)
