@@ -8,6 +8,10 @@ p {
   margin-bottom: 50px;
 }
 
+img.profile-image {
+  vertical-align: text-top;
+}
+
 .checkin {
   padding: 15px;
   padding-bottom: 15px;
