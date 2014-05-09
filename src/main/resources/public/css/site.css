@@ -9,7 +9,7 @@ p {
 
 .checkin {
   padding: 15px;
-  padding-bottom: 0px;
+  padding-bottom: 15px;
   margin-bottom: 0px;
   background: #f0f0f0;
   width: 340px;
@@ -52,6 +52,7 @@ h4.timestamp {
   color: #ccc;
   font-size: 10px;
   margin-bottom: -5px;
+  padding-right: 15px;
 }
 
 .details a {
@@ -59,6 +60,8 @@ h4.timestamp {
 }
 
 .likes {
+  position: relative;
+  top: 6px;
   font-size: 12px;
   float: right;
 }
@@ -69,9 +72,11 @@ h4.timestamp {
 }
 
 .comments {
+  position: relative;
+  top: 6px;
   font-size: 12px;
   float: right;
-  margin-right: 10px;
+  margin-right: 2px;
 }
 
 .comments .icon {
