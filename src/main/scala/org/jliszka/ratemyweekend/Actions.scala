@@ -277,6 +277,71 @@ object Actions {
     (userScores, weekendScores)
   }
 
+  def sendFriendJoinedEmail(to: User, friend: User): Future[Unit] = future {
+    for {
+      toEmail <- to.emailOption
+      toName <- to.firstNameOption
+      friendName <- friend.firstNameOption
+      friendPhoto <- friend.photoOption
+      imgUrl = friendPhoto.prefix + "40x40" + friendPhoto.suffix
+    } {
+      val subject = s"Rate $friendName's weekend"
+      val embeds = Map("img" -> imgUrl)
+      val message = s"""
+<p>
+  Hi $toName!
+</p>
+<p>
+  Your friend $friendName just joined Rate My Weekend. Now is your chance to pass judgment on their weekend.
+  <a href="http://ratemyweekend.herokuapp.com">Go do it &gt;&gt;</a>
+</p>
+<p>
+  Also they are probably rating your weekend right now, so... you might as well.
+</p>
+<p>
+  It's this person btw, in case you weren't sure:
+</p>
+<p>$$img</p>
+      """
+      Email.send(Seq(toEmail), subject, message, embeds)
+    }
+  }
+
+  def sendMondayEmail(): Future[Unit] = future {
+    val users = db.fetch(Q(User))
+    val userMap = users.map(u => u.id -> u).toMap
+    val friends = db.fetch(Q(Friend))
+    val friendMap = friends.groupBy(_.self).mapValues(_.map(_.other))
+
+    val subject = "How was your weekend?"
+
+    for {
+      user <- users
+      if user.id.toString == "364701"
+      name <- user.firstNameOption
+      email <- user.emailOption
+      friendIds <- friendMap.get(user.id)
+    } {
+      val nfriends = friendIds.size
+      val embeds = (for {
+        friendId <- friendIds
+        friend <- userMap.get(friendId)
+        photo <- friend.photoOption
+        imgUrl = photo.prefix + "40x40" + photo.suffix
+      } yield (friendId.toString, imgUrl)).toMap
+      val embedStr = embeds.map(e => "$"+e._1).mkString(" ")
+      val message = s"""
+<p>
+  Hi $name. It's Monday! You have $nfriends friends' weekends to rate. <a href="http://ratemyweekend.herokuapp.com">Get started &gt;&gt;</a>
+</p>
+<p>
+  $embedStr
+</p>
+      """
+      Email.send(Seq(email), subject, message, embeds)
+    }
+  }
+
   def createSession(user: User): Future[Session] = future {
     db.save(Session.newBuilder
       .id(SessionId(new ObjectId))
