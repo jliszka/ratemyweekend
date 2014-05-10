@@ -8,8 +8,17 @@ p {
 }
 
 .leaderboard td {
-  font-size: 12px;
-  margin-bottom: 5px;
+  font-size: 14px;
+  margin-bottom: 4px;
+  padding: 3px;
+}
+
+.leaderboard.friend-leaderboard td {
+  font-size: 18px;
+}
+
+.leaderboard td .score {
+  font-size: 18px;
 }
 
 h1 {
@@ -26,6 +35,12 @@ h3 {
 
 h4 {
   font-size: 14px;
+}
+
+h1 img.profile-image,
+h2 img.profile-image {
+  position: relative;
+  top: -8px;
 }
 
 .checkin {
