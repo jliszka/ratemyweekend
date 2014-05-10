@@ -16,12 +16,15 @@ struct User {
   4: optional string lastName (wire_name="ln")
   5: optional Photo photo (wire_name="p")
   6: optional string tz (wire_name="tz")
+  7: optional string email (wire_name="e")
+  8: optional string twitter (wire_name="tw")
 } (
   mongo_collection="users"
   mongo_identifier="ratemyweekend"
   primary_key="id"
 
   index="id:asc"
+  index="twitter:asc"
 )
 
 struct Photo {

@@ -3,6 +3,7 @@ package org.jliszka.ratemyweekend
 import com.foursquare.rogue.{BSONType, QueryField}
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
 import com.foursquare.spindle.{HasMetaPrimaryKey, HasPrimaryKey, MetaRecord, Record}
+import com.twitter.finatra.config
 import com.twitter.util.{Future, FuturePool}
 import java.io.{PrintWriter, StringWriter}
 import java.util.concurrent.{SynchronousQueue, ThreadPoolExecutor, TimeUnit}
@@ -14,6 +15,9 @@ object Util {
   val dateTimeFmt = DateTimeFormat.forPattern("EEEE, MMMM d, yyyy 'at' h:mm aa z")
   val dateFmt = DateTimeFormat.forPattern("EEEE, MMMM d")
   val timeFmt = DateTimeFormat.forPattern("h:mm aa")
+
+  def isDevelopment = "development".equals(config.env())
+  def isProduction = !isDevelopment
 
   def dateToApi(d: DateTime) = d.getMillis / 1000
   def apiToDate(s: Long, offset: Int) = {

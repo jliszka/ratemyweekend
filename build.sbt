@@ -24,6 +24,8 @@ libraryDependencies += "com.foursquare" % "common-thrift-bson" % "1.8.4"
 
 libraryDependencies += "com.foursquare" %% "foursquare-fhttp" % "0.1.11"
 
+libraryDependencies += "org.apache.commons" % "commons-email" % "1.3"
+
 seq(thriftSettings: _*)
 
 seq(SbtStartScript.startScriptForJarSettings: _*)

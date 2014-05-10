@@ -29,7 +29,7 @@ class FixedFinatraMustacheFactory(baseTemplatePath: String) extends FinatraMusta
   }
 
   override def getReader(resourceName:String): Reader = {
-    if (!"development".equals(config.env())) {
+    if (Util.isProduction) {
       super.getReader(resourceName)
     }
     // In development mode, we look to the local file

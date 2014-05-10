@@ -27,14 +27,15 @@ object Actions {
         .findAndModify(_.accessToken setTo token)
         .andOpt(fsUser.firstNameOption)(_.firstName setTo _)
         .andOpt(fsUser.lastNameOption)(_.lastName setTo _)
-        .andOpt(fsUser.photoOption.map(p => Photo(p.prefix, p.suffix)))(_.photo setTo _),
+        .andOpt(fsUser.photoOption.map(p => Photo(p.prefix, p.suffix)))(_.photo setTo _)
+        .andOpt(fsUser.contactOption.flatMap(_.emailOption))(_.email setTo _)
+        .andOpt(fsUser.contactOption.flatMap(_.twitterOption))(_.twitter setTo _),
       returnNew = true).get
     }
 
     for {
       fsUser <- fsUserF
       user <- userF(fsUser)
-      _ <- syncUser(user)
     } yield user
   }
 

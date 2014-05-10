@@ -1,7 +1,6 @@
 package org.jliszka.ratemyweekend
 
 import com.foursquare.rogue.spindle.{SpindleQuery => Q}
-import com.twitter.finatra._
 import com.twitter.util.Future
 import org.bson.types.ObjectId
 import org.jliszka.ratemyweekend.model.gen.{Friend, Photo, Rating, Session, User, Weekend}
@@ -12,21 +11,12 @@ import org.joda.time.DateTime
 object Batch {
 
   def resetRatings() {
-    if ("development".equals(config.env())) {
+    if (Util.isDevelopment) {
       db.updateMulti(Q(Rating).where(_.rater eqs UserId("364701")).modify(_.score unset))
     }
   }
 
-  def fixWeekField() {
-    for {
-      r <- db.fetch(Q(Rating))
-      w <- db.fetchOne(Q(Weekend).where(_.id eqs r.weekend))  
-    } {
-      db.updateOne(Q(Rating).where(_.id eqs r.id).modify(_.week setTo w.week))
-    }
-  }
-
-  def fixCheckinDetails() {
+  def syncCheckinDetails() {
     for {
       u <- db.fetch(Q(User))
       w <- db.fetch(Q(Weekend).where(_.uid eqs u.id))
@@ -36,7 +26,12 @@ object Batch {
     }
   }
 
+  def updateUserDetails() {
+    db.fetch(Q(User)).foreach(user => Actions.createUser(user.accessToken)())
+  }
+
   def ensureIndexes() {
+    db.ensureIndexes(Q(User))
     db.ensureIndexes(Q(Session))
     db.ensureIndexes(Q(Weekend))
     db.ensureIndexes(Q(Rating))
@@ -45,9 +40,9 @@ object Batch {
 
   def updateSchema(version: Int) {
     version match {
-      case 1 => fixWeekField()
-      case 2 => fixCheckinDetails()
+      case 2 => syncCheckinDetails()
       case 3 => ensureIndexes()
+      case 4 => updateUserDetails()
     }
   }
 }

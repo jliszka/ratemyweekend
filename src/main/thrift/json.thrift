@@ -31,6 +31,12 @@ struct UserJson {
   3: optional string lastName
   4: optional PhotoJson photo
   5: optional string gender
+  6: optional ContactJson contact
+}
+
+struct ContactJson {
+  1: optional string email
+  2: optional string twitter
 }
 
 struct PhotoJson {
