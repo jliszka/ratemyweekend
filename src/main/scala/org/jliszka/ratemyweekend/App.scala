@@ -141,7 +141,9 @@ object App extends FinatraServer {
 
     def loggedInUser(request: Request): Future[Option[User]] = future {
       for {
-        sessionId <- request.cookies.get("sessionid").map(c => SessionId(new ObjectId(c.value)))
+        sessionIdStr <- request.cookies.get("sessionid").map(_.value)
+        if ObjectId.isValid(sessionIdStr)
+        sessionId = SessionId(new ObjectId(sessionIdStr))
         session <- db.findAndUpdateOne(Q(Session).where(_.id eqs sessionId).findAndModify(_.lastUsed setTo DateTime.now))
         user <- db.fetchOne(Q(User).where(_.id eqs session.uid))
       } yield user
