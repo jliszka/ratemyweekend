@@ -1,7 +1,8 @@
 package org.jliszka.ratemyweekend
 
 import java.net.URL
-import org.apache.commons.mail.{DefaultAuthenticator, HtmlEmail}
+import org.apache.commons.mail.{DefaultAuthenticator, ImageHtmlEmail}
+import org.apache.commons.mail.resolver.DataSourceUrlResolver
 
 object Email {
   val host = "smtp.sendgrid.net"
@@ -9,25 +10,17 @@ object Email {
   def username = Option(System.getenv("SENDGRID_USERNAME")).getOrElse("app24091486@heroku.com")
   def password = Option(System.getenv("SENDGRID_PASSWORD")).getOrElse("t6z8wsuq")
 
-  def send(to: Seq[String], subject: String, message: String, embed: Map[String, String] = Map.empty) {
-    val email = new HtmlEmail
+  def send(to: Seq[String], subject: String, message: String) {
+    val email = new ImageHtmlEmail
     email.setHostName(host)
     email.setSmtpPort(port)
     email.setAuthenticator(new DefaultAuthenticator(username, password))
+    email.setDataSourceResolver(new DataSourceUrlResolver(new URL("http://ratemyweekend.herokuapp.com")))
     email.setSSLOnConnect(true)
     email.setFrom("no-reply@ratemyweekend.herokuapp.com", "Rate My Weekend")
     email.setSubject(subject)
+    email.setHtmlMsg(message)
 
-    val replacements = for {
-      (id, url) <- embed
-    } yield {
-      val cid = email.embed(new URL(url), id)
-      ("\\$"+id, s"""<img src="cid:$cid"/>""")
-    }
-
-    val msg = replacements.foldLeft(message){ case (m, (id, r)) => m.replaceAll(id, r) }
-
-    email.setHtmlMsg(msg)
     if (Util.isDevelopment) {
       email.addTo("jliszka@gmail.com")
     } else {

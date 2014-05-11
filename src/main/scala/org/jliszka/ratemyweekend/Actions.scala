@@ -286,7 +286,6 @@ object Actions {
       imgUrl = friendPhoto.prefix + "40x40" + friendPhoto.suffix
     } {
       val subject = s"Rate $friendName's weekend"
-      val embeds = Map("img" -> imgUrl)
       val message = s"""
 <p>
   Hi $toName!
@@ -301,9 +300,9 @@ object Actions {
 <p>
   It's this person btw, in case you weren't sure:
 </p>
-<p>$$img</p>
+<p><img src="$imgUrl"/></p>
       """
-      Email.send(Seq(toEmail), subject, message, embeds)
+      Email.send(Seq(toEmail), subject, message)
     }
   }
 
@@ -323,22 +322,21 @@ object Actions {
       friendIds <- friendMap.get(user.id)
     } {
       val nfriends = friendIds.size
-      val embeds = (for {
+      val images = (for {
         friendId <- friendIds
         friend <- userMap.get(friendId)
         photo <- friend.photoOption
         imgUrl = photo.prefix + "40x40" + photo.suffix
-      } yield (friendId.toString, imgUrl)).toMap
-      val embedStr = embeds.map(e => "$"+e._1).mkString(" ")
+      } yield s"""<img src="$imgUrl"/>""").mkString(" ")
       val message = s"""
 <p>
   Hi $name. It's Monday! You have $nfriends friends' weekends to rate. <a href="http://ratemyweekend.herokuapp.com">Get started &gt;&gt;</a>
 </p>
 <p>
-  $embedStr
+  $images
 </p>
       """
-      Email.send(Seq(email), subject, message, embeds)
+      Email.send(Seq(email), subject, message)
     }
   }
 
