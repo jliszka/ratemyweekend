@@ -316,7 +316,7 @@ object Actions {
 
     for {
       user <- users
-      if user.id.toString == "364701"
+      if Util.isProduction || user.id.toString == "364701"
       name <- user.firstNameOption
       email <- user.emailOption
       friendIds <- friendMap.get(user.id)
