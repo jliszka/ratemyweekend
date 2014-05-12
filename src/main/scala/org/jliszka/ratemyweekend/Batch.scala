@@ -25,7 +25,10 @@ object Batch {
 
   def resetRatings() {
     if (Util.isDevelopment) {
-      db.updateMulti(Q(Rating).where(_.rater eqs UserId("364701")).modify(_.score unset))
+      db.updateMulti(Q(Rating)
+        .where(_.rater eqs UserId("364701"))
+        .and(_.week eqs Week.thisWeek.week)
+        .modify(_.score unset))
     }
   }
 

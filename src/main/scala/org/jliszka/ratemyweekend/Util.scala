@@ -108,19 +108,5 @@ object Week {
     new Week(d)
   }
   def weekAgo(n: Int) = new Week(DateTime.now.minusWeeks(n))
-
-  def test() {
-    val start = new DateTime(2014, 2, 1, 0, 0, 0, 0)
-    for (i <- 0 to (4 * 365 * 2)) {
-      val d = start.plusHours(i)
-      val week1 = new Week(d)
-      val week2 = Week(week1.week)
-      if (week1.week != week2.week) {
-        throw new Exception("failed on %s".format(Util.dateTimeFmt.print(d)))
-      }
-    }
-
-    println("ok")
-  }
 }
 

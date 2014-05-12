@@ -1,0 +1,17 @@
+package org.jliszka.ratemyweekend
+
+import org.joda.time.DateTime
+import org.scalatest._
+
+class UtilTest extends FlatSpec with Matchers {
+
+  "Week" should "round trip" in {
+    val start = new DateTime(2014, 2, 1, 0, 0, 0, 0)
+    for (i <- 0 to (4 * 365 * 2)) {
+      val d = start.plusHours(i)
+      val week1 = new Week(d)
+      val week2 = Week(week1.week)
+      week1.week should equal (week2.week)
+    }
+  }
+}

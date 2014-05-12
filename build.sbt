@@ -26,6 +26,8 @@ libraryDependencies += "com.foursquare" %% "foursquare-fhttp" % "0.1.11"
 
 libraryDependencies += "org.apache.commons" % "commons-email" % "1.3"
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.1.5" % "test"
+
 seq(thriftSettings: _*)
 
 seq(SbtStartScript.startScriptForJarSettings: _*)
