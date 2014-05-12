@@ -10,6 +10,19 @@ import org.joda.time.DateTime
 
 object Batch {
 
+  def userStats() {
+    val ratingsMap = db.fetch(Q(Rating)).groupBy(_.rater)
+    val users = db.fetch(Q(User))
+    for {
+      user <- users
+      firstName <- user.firstNameOption
+      ratings <- ratingsMap.get(user.id)
+    } {
+      val (rated, notrated) = ratings.partition(_.scoreIsSet)
+      println(s"$firstName\t${rated.size}\t${notrated.size}")
+    }
+  }
+
   def resetRatings() {
     if (Util.isDevelopment) {
       db.updateMulti(Q(Rating).where(_.rater eqs UserId("364701")).modify(_.score unset))
