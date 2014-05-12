@@ -9,4 +9,4 @@ PASS="GJ9OIjVGesSMF4ulg2xMDgS1UZqzjdWZr10eXtEDKipCqOt4vRmtEwLBbV3vcBBo-tXAgjLEpb
 
 $BIN/mongodump --host $HOST:$PORT --db $DB -u $USER -p$PASS -o mongohq.dmp
 
-$BIN/mongorestore --host localhost:27017 --db ratemyweekend mongohq.dmp/$DB
+$BIN/mongorestore --host localhost:27017 --db ratemyweekend --drop mongohq.dmp/$DB
