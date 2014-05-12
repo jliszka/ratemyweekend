@@ -42,7 +42,7 @@ object Actions {
   def syncUser(user: User): Future[Unit] = {
     for {
       friendIds <- syncFriends(user)
-      (weekendId, _) <- future.join(
+      _ <- future.join(
         syncCheckins(user, friendIds, Week.thisWeek),
         collectRatings(user, friendIds, Week.thisWeek))
     } yield ()
@@ -124,7 +124,8 @@ object Actions {
     }
 
     for {
-      (doneUsers, users) <- future.join(doneUsersF, usersF)
+      users <- usersF
+      doneUsers <- doneUsersF
       toSync = users.filterNot(u => doneUsers(u.id))
       _ <- syncUsers(users)
     } yield ()
@@ -157,8 +158,9 @@ object Actions {
     for {
       apiCheckins <- apiCheckinsF
       weekend <- setCheckins(apiCheckins)
-      _ <- syncCheckinDetails(user, weekend)
-      _ <- createRatings(weekend.id)
+      _ <- future.join(
+        syncCheckinDetails(user, weekend),
+        createRatings(weekend.id))
     } yield weekend
   }
 

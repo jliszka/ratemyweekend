@@ -14,13 +14,15 @@ class AppTest extends FlatSpecHelper {
     response.code should equal (200)
   }
 
+  /*
+
   "PUT item" should "create an item" in {
-    // TODO(jliszka)
-    // post("/item/put", params=Map("text" -> "foo"))
-    // response.code should equal (302)
+    post("/item/put", params=Map("text" -> "foo"))
+    response.code should equal (302)
   }
 
   "DELETE item" should "delete the item" in {
-    // TODO(jliszka)
   }
+
+  */
 }
