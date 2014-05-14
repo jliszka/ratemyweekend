@@ -14,4 +14,19 @@ class UtilTest extends FlatSpec with Matchers {
       week1.week should equal (week2.week)
     }
   }
+
+  "groupedCollect" should "work" in {
+    val xs: Seq[Int] = future.groupedCollect(1 to 101, 6)(i => future(i+1))()
+    xs should equal (2 to 102)
+  }
+
+  "groupedCollect" should "handle empty list" in {
+    val xs: Seq[Int] = future.groupedCollect(Seq.empty[Int], 6)(i => future(i+1))()
+    xs should equal (Seq.empty)
+  }
+
+  "groupedCollect" should "handle small lists" in {
+    val xs: Seq[Int] = future.groupedCollect(1 to 3, 6)(i => future(i+1))()
+    xs should equal (2 to 4)
+  }
 }

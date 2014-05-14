@@ -72,19 +72,13 @@ object future {
   }
 
   def groupedCollect[A, B](xs: Seq[A], par: Int)(f: A => Future[B]): Future[Seq[B]] = {
-    if (xs.size < par * 3) {
-      Future.collect(xs.map(f))
-    }
-    else {
-      val groupSize = xs.size / par
-      Future.collect(xs.grouped(groupSize).toSeq.map(xs => xs.foldLeft(Future.value(Seq.empty[B])){ case (bsF, x) => {
-        for {
-          bs <- bsF
-          b <- f(x)
-          bbs <- Future.value(b +: bs)
-        } yield bbs
-      }})).map(_.map(_.reverse).flatten)
-    }
+    val bsF: Future[Seq[B]] = Future.value(Seq.empty[B])
+    xs.grouped(par).foldLeft(bsF){ case (bsF, group) => {
+      for {
+        bs <- bsF
+        xs <- Future.collect(group.map(f))
+      } yield bs ++ xs
+    }}
   }
 }
 
