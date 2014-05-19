@@ -42,12 +42,13 @@ object View {
     }
   }
 
-  class Rate(val user: User, val toRate: Seq[WeekendRating])
+  class Rate(val user: User, toRate: Seq[WeekendRating], howManyOpt: Option[Int] = None)
       extends FixedView with WeekendUtil {
     val template = "rate.html"
-    val checkinsByDayByUser = for {
-      r <- toRate
-    } yield UserWeekendDay(r.rating, r.user, Week(r.weekend.week), groupByDay(r.weekend))
+    val checkinsByDayByUser = (for {
+      r <- howManyOpt.map(howMany => toRate.take(howMany)).getOrElse(toRate)
+    } yield UserWeekendDay(r.rating, r.user, Week(r.weekend.week), groupByDay(r.weekend)))
+
     val ratingOptions = 1 to 10
 
     case class UserWeekendDay(rating: Rating, user: User, week: Week, checkinsByDay: Seq[WeekendDay])

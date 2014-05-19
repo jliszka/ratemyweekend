@@ -23,12 +23,14 @@ object App extends FinatraServer {
       loggedInUser(request).flatMap(userOpt => userOpt match {
         case None => render.view(new View.Index).toFuture
         case Some(user) => {
+          val rateAll = request.params.get("all").nonEmpty
           Actions.hasWeekendsToRate(user).flatMap(needsToRate => {
-            if (needsToRate) {
+            if (needsToRate || rateAll) {
               // Render weekends to rate
+              val howManyOpt = if (rateAll) None else Some(5)
               for {
                 toRate <- Actions.getWeekendsToRate(user)
-                template = new View.Rate(user, toRate)
+                template = new View.Rate(user, toRate, howManyOpt)
                 r <- render.view(template).toFuture
               } yield r
             } else {

@@ -217,7 +217,10 @@ object Actions {
   }
 
   def hasWeekendsToRate(user: User): Future[Boolean] = future {
-    db.count(Q(Rating).where(_.rater eqs user.id).and(_.score exists false)) > 0
+    db.count(Q(Rating)
+      .where(_.rater eqs user.id)
+      .and(_.week eqs Week.thisWeek.week)
+      .and(_.score exists true)) <= 1
   }
 
   def getWeekendsToRate(user: User): Future[Seq[WeekendRating]] = future {

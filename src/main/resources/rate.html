@@ -1,25 +1,11 @@
 {{<chrome}}
 
   {{$js}}
-    var ratings = {
-      {{#checkinsByDayByUser}}
-      '{{rating.id}}': false,
-      {{/checkinsByDayByUser}}
-      'foo': true
-    };
     function rate(rid, score) {
       $('#rate-'+rid+' .rating-option').removeClass('selected');
       $('#rate-'+rid+'-'+score).addClass('selected');
       $('#rate-'+rid+'-submit').css('display', 'inline-block');
       $('#score-'+rid).text(score);
-      ratings[rid] = true;
-      var done = true;
-      $.each(ratings, function(idx, value) {
-        if (!value) done = false;
-      });
-      if (done) {
-        $("#done").show();
-      }
 
       $.ajax('/rate/'+rid, { type: 'POST', data: { score: score }});
     }
@@ -53,7 +39,7 @@
     {{/user}}
 
     <p class="torate">
-      You have {{toRate.length}} weekends to rate.
+      You have {{checkinsByDayByUser.length}} weekends to rate.
       Get started!
     </p>
 
@@ -75,11 +61,11 @@
         <div class="rate" id="rate-{{rating.id}}" {{#rating.scoreOption}}data="{{toString}}"{{/rating.scoreOption}}>
           <h4 class="rating-label">Your rating:</h4>
           {{#ratingOptions}}
-            <div class="rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">
+            <div class="button rating-option" id="rate-{{rating.id}}-{{toString}}" onclick="rate('{{rating.id}}', {{toString}})">
               {{toString}}
             </div>
           {{/ratingOptions}}
-          <div class="rating-option rating-option-submit" id="rate-{{rating.id}}-submit" onclick="hideWeek('{{rating.id}}')">
+          <div class="button rating-option rating-option-submit" id="rate-{{rating.id}}-submit" onclick="hideWeek('{{rating.id}}')">
             submit
           </div>
           <div class="clear"></div>
@@ -88,7 +74,8 @@
     {{/checkinsByDayByUser}}
 
     <p id="done" class="done">
-      You've rated everything there is to rate! Now go check out the <a href="/">leaderboard</a>.
+      <a class="button" href="/?all=true">Rate more</a>
+      <a class="button" href="/">Take me to the the leaderboard</a>
     </p>
 
   {{/content}}

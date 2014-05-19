@@ -119,18 +119,27 @@ h4.timestamp {
 }
 
 .rating-option {
-  border: 1px solid #ccc;
   width: 30px;
   height: 30px;
   padding: 4px;
   margin: 3px;
+}
+
+.rating-option.selected {
+  background: #ddd;
+}
+
+.button {
+  border: 1px solid #ccc;
   display: inline-block;
   text-align: center;
   cursor: pointer;
 }
-
-.rating-option:hover, .rating-option.selected {
+.button:hover {
   background: #ddd;
+}
+a.button {
+  text-decoration: none;
 }
 
 .rating-option-submit {
@@ -184,8 +193,13 @@ h4.timestamp {
 }
 
 #done {
-  display: none;
   margin-top: 30px;
+  padding-left: 335px;
+}
+
+#done a {
+  padding: 5px 10px;
+  margin-right: 20px;
 }
 
 a.unstyled,
