@@ -42,7 +42,7 @@ object Actions {
   def syncUser(user: User): Future[Unit] = {
     for {
       friendIds <- syncFriends(user)
-      _ <- future.join(
+      _ <- Future.join(
         syncCheckins(user, friendIds, Week.thisWeek),
         collectRatings(user, friendIds, Week.thisWeek))
     } yield ()
@@ -158,7 +158,7 @@ object Actions {
     for {
       apiCheckins <- apiCheckinsF
       weekend <- setCheckins(apiCheckins)
-      _ <- future.join(
+      _ <- Future.join(
         syncCheckinDetails(user, weekend),
         createRatings(weekend.id))
     } yield weekend

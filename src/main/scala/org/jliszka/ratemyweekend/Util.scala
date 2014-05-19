@@ -6,7 +6,7 @@ import com.foursquare.spindle.{HasMetaPrimaryKey, HasPrimaryKey, MetaRecord, Rec
 import com.twitter.finatra.config
 import com.twitter.util.{Future, FuturePool}
 import java.io.{PrintWriter, StringWriter}
-import java.util.concurrent.{SynchronousQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.Executors
 import org.joda.time.{DateTime, DateTimeZone}
 import org.joda.time.format.DateTimeFormat
 
@@ -55,21 +55,9 @@ object Util {
 }
 
 object future {
-  private val executor = new ThreadPoolExecutor(
-    10, 50,
-    60L, TimeUnit.SECONDS,
-    new SynchronousQueue())
-
-  private val pool = FuturePool(executor)
+  private val pool = FuturePool(Executors.newFixedThreadPool(10))
 
   def apply[A](a: => A): Future[A] = pool(a)
-
-  def join[A, B](a: Future[A], b: Future[B]): Future[(A, B)] = {
-    a.join(b)
-  }
-  def join[A, B, C](a: Future[A], b: Future[B], c: Future[C]): Future[(A, B, C)] = {
-    a.join(b).join(c).map{ case ((a, b), c) => (a, b, c) }
-  }
 
   def groupedCollect[A, B](xs: Seq[A], par: Int)(f: A => Future[B]): Future[Seq[B]] = {
     val bsF: Future[Seq[B]] = Future.value(Seq.empty[B])

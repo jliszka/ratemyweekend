@@ -46,7 +46,7 @@ class OAuthController extends Controller {
     for {
       token <- accessTokenF
       user <- Actions.createUser(token.access_token)
-      (_, session) <- future.join(
+      (_, session) <- Future.join(
         Actions.syncUser(user),
         Actions.createSession(user))
     } yield {
