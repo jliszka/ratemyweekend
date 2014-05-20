@@ -4,13 +4,14 @@
   <h1>Leaderboard</h1>
 
   <div class="leaderboard weekend-leaderboard">
-    <h2>Top Weekends</h2>
+    <h2>This Week</h2>
     <table>
-    {{#weekendLeaderboard}}
+    {{#thisWeekLeaderboard}}
       <tr>
         <td class="rank">
           {{rank}}.
         </td>
+        {{#weekendScore}}
         <td>
           <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
             {{#user.photoOption}}
@@ -20,16 +21,17 @@
         </td>
         <td>
           <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
-            {{user.firstNameOption}} on {{week.dateStr}}
+            {{user.firstNameOption}}
           </a>
         </td>
         <td>
-          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="score unstyled">
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="score unstyled" title="{{score.count}}">
             {{score.str}}
           </a>
         </td>
+        {{/weekendScore}}
       </tr>
-    {{/weekendLeaderboard}}
+    {{/thisWeekLeaderboard}}
     </table>
   </div>
 
@@ -41,6 +43,7 @@
         <td class="rank">
           {{rank}}.
         </td>
+        {{#userScore}}
         <td>
           <a href="/user/{{user.id}}" class="unstyled">
             {{#user.photoOption}}
@@ -54,12 +57,45 @@
           </a>
         </td>
         <td>
-          <a href="/user/{{user.id}}" class="score unstyled">
+          <a href="/user/{{user.id}}" class="score unstyled" title="{{score.count}}">
             {{score.str}}
           </a>
         </td>
+        {{/userScore}}
       </tr>
     {{/userLeaderboard}}
+    </table>
+  </div>
+
+  <div class="leaderboard weekend-leaderboard">
+    <h2>Top Weekends</h2>
+    <table>
+    {{#allTimeLeaderboard}}
+      <tr>
+        <td class="rank">
+          {{rank}}.
+        </td>
+        {{#weekendScore}}
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
+            {{#user.photoOption}}
+              <img src="{{prefix}}40x40{{suffix}}"/>
+            {{/user.photoOption}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="unstyled">
+            {{user.firstNameOption}} on {{week.dateStr}}
+          </a>
+        </td>
+        <td>
+          <a href="/user/{{user.id}}#weekend-{{weekendId}}" class="score unstyled" title="{{score.count}}">
+            {{score.str}}
+          </a>
+        </td>
+        {{/weekendScore}}
+      </tr>
+    {{/allTimeLeaderboard}}
     </table>
   </div>
 

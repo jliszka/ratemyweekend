@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 object Batch {
 
   def userStats() {
-    val ratingsMap = db.fetch(Q(Rating)).groupBy(_.rater)
+    val ratingsMap = db.fetch(Q(Rating).where(_.week eqs Week.thisWeek.week)).groupBy(_.rater)
     val users = db.fetch(Q(User))
     for {
       user <- users

@@ -56,15 +56,19 @@ object View {
 
   class Leaderboard(val user: User, userScores: UserScores, weekendScores: WeekendScores) extends FixedView {
     val template = "leaderboard.html"
-    case class UserScore(rank: Int, user: User, score: Score)
-    case class WeekendScore(rank: Int, user: User, week: Week, weekendId: WeekendId, score: Score)
+    case class UserScoreRank(rank: Int, userScore: UserScore)
+    case class WeekendScoreRank(rank: Int, weekendScore: WeekendScore)
 
     val userLeaderboard = userScores.scores
-      .sortBy(_._2.average).reverse.take(10)
-      .zipWithIndex.map{ case ((user, score), idx) => UserScore(idx+1, user, score) }
-    val weekendLeaderboard = weekendScores.scores
-      .sortBy(_._4.average).reverse.take(10)
-      .zipWithIndex.map{ case ((user, week, weekend, score), idx) => WeekendScore(idx+1, user, week, weekend, score) }
+      .sortBy(_.score.average).reverse.take(10)
+      .zipWithIndex.map{ case (userScore, idx) => UserScoreRank(idx+1, userScore) }
+    val allTimeLeaderboard = weekendScores.scores
+      .sortBy(_.score.average).reverse.take(10)
+      .zipWithIndex.map{ case (weekendScore, idx) => WeekendScoreRank(idx+1, weekendScore) }
+    val thisWeekLeaderboard = weekendScores.scores
+      .filter(_.week.week == Week.thisWeek.week)
+      .sortBy(_.score.average).reverse.take(10)
+      .zipWithIndex.map{ case (weekendScore, idx) => WeekendScoreRank(idx+1, weekendScore) }
   }
 
   class Profile(val me: User, val user: User, weekends: Seq[(Weekend, Score)]) extends FixedView with WeekendUtil {

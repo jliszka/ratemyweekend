@@ -272,12 +272,12 @@ object Actions {
     val userScores = UserScores(for {
       (userId, ratings) <- ratings.groupBy(_.ratee).toSeq
       user <- userMap.get(userId)
-    } yield (user, new Score(ratings)))
+    } yield UserScore(user, new Score(ratings)))
 
     val weekendScores = WeekendScores(for {
       (weekendId, ratings) <- ratings.groupBy(_.weekend).toSeq
       user <- userMap.get(ratings.head.ratee)
-    } yield (user, Week(ratings.head.week), weekendId, new Score(ratings)))
+    } yield WeekendScore(user, Week(ratings.head.week), weekendId, new Score(ratings)))
 
     (userScores, weekendScores)
   }
@@ -363,6 +363,8 @@ class Score(val ratings: Seq[Rating]) {
   val str = strOption.getOrElse("-")
 }
 
-case class UserScores(scores: Seq[(User, Score)])
-case class WeekendScores(scores: Seq[(User, Week, WeekendId, Score)])
+case class UserScore(user: User, score: Score)
+case class UserScores(scores: Seq[UserScore])
+case class WeekendScore(user: User, week: Week, weekendId: WeekendId, score: Score)
+case class WeekendScores(scores: Seq[WeekendScore])
 case class WeekendRating(user: User, weekend: Weekend, rating: Rating)

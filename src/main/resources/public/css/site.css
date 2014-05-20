@@ -155,7 +155,8 @@ a.button {
 
 .leaderboard {
   float: left;
-  margin-right: 200px;
+  margin-right: 60px;
+  margin-bottom: 50px;
 }
 
 .leaderboard td {
