@@ -1,21 +1,21 @@
 TODO
 
+- correct average rating
 - smarter selection
 - rate my own weekend
 - sample size
 - past ratings for user?
-
-launch
-- colorify ratings
+- fix weird UX with scrolling
+- fixed header a la instagram
+- submit button => confirmation
 
 notifications
 - friend joined
 - friend rated you
 
 later
+- colorify ratings
 - best weekend of the month/year
-- rate your own weekend
-- submit button => confirmation
 - inline likes
 - ratings guidelines
 - normalize scores

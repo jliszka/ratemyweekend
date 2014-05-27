@@ -224,7 +224,10 @@ object Actions {
   }
 
   def getWeekendsToRate(user: User): Future[Seq[WeekendRating]] = future {
-    val ratings = db.fetch(Q(Rating).where(_.rater eqs user.id).and(_.score exists false))
+    val ratings = db.fetch(Q(Rating)
+      .where(_.rater eqs user.id)
+      .and(_.week eqs Week.thisWeek.week)
+      .and(_.score exists false))
     val userMap = Util.idMap(User, ratings.map(_.ratee))
     val weekendMap = Util.idMap(Weekend, ratings.map(_.weekend))
 
