@@ -50,7 +50,7 @@ object App extends FinatraServer {
       val week = Week.thisWeek
       for {
         _ <- Actions.syncCheckins(week)
-        _ <- Actions.sendMondayEmail()
+        //_ <- Actions.sendMondayEmail()
         r <- render.status(200).plain("ok").toFuture
       } yield r
     }
